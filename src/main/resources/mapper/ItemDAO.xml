@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lamarsan.seckill.dao.ItemDAO">
+    <resultMap id="BaseResultMap" type="com.lamarsan.seckill.entities.ItemDO">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="price" jdbcType="DECIMAL" property="price"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="sales" jdbcType="BIGINT" property="sales"/>
+        <result column="img_url" jdbcType="VARCHAR" property="imgUrl"/>
+        <result column="del_flag" jdbcType="BIT" property="delFlag"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="update_date" jdbcType="TIMESTAMP" property="updateDate"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, title, price, description, sales, img_url, del_flag, create_date, update_date
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from item
+        where id = #{id,jdbcType=BIGINT} and del_flag = 0
+    </select>
+    <select id="listItem" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from item
+        where del_flag = 0 order by sales desc
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete
+        from item
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+    <insert id="insert" parameterType="com.lamarsan.seckill.entities.ItemDO" keyProperty="id" useGeneratedKeys="true">
+        insert into item (id, title, price,
+                          description, sales, img_url,
+                          del_flag, create_date, update_date)
+        values (#{id,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{price,jdbcType=DECIMAL},
+                #{description,jdbcType=VARCHAR}, #{sales,jdbcType=BIGINT}, #{imgUrl,jdbcType=VARCHAR},
+                #{delFlag,jdbcType=BIT}, #{createDate,jdbcType=TIMESTAMP}, #{updateDate,jdbcType=TIMESTAMP})
+    </insert>
+    <insert id="insertSelective" parameterType="com.lamarsan.seckill.entities.ItemDO" keyProperty="id"
+            useGeneratedKeys="true">
+        insert into item
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="title != null">
+                title,
+            </if>
+            <if test="price != null">
+                price,
+            </if>
+            <if test="description != null">
+                description,
+            </if>
+            <if test="sales != null">
+                sales,
+            </if>
+            <if test="imgUrl != null">
+                img_url,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+            <if test="createDate != null">
+                create_date,
+            </if>
+            <if test="updateDate != null">
+                update_date,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="title != null">
+                #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="price != null">
+                #{price,jdbcType=DECIMAL},
+            </if>
+            <if test="description != null">
+                #{description,jdbcType=VARCHAR},
+            </if>
+            <if test="sales != null">
+                #{sales,jdbcType=BIGINT},
+            </if>
+            <if test="imgUrl != null">
+                #{imgUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=BIT},
+            </if>
+            <if test="createDate != null">
+                #{createDate,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateDate != null">
+                #{updateDate,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.lamarsan.seckill.entities.ItemDO">
+        update item
+        <set>
+            <if test="title != null">
+                title = #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="price != null">
+                price = #{price,jdbcType=DECIMAL},
+            </if>
+            <if test="description != null">
+                description = #{description,jdbcType=VARCHAR},
+            </if>
+            <if test="sales != null">
+                sales = #{sales,jdbcType=BIGINT},
+            </if>
+            <if test="imgUrl != null">
+                img_url = #{imgUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=BIT},
+            </if>
+            <if test="createDate != null">
+                create_date = #{createDate,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateDate != null">
+                update_date = #{updateDate,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.lamarsan.seckill.entities.ItemDO">
+        update item
+        set title       = #{title,jdbcType=VARCHAR},
+            price       = #{price,jdbcType=DECIMAL},
+            description = #{description,jdbcType=VARCHAR},
+            sales       = #{sales,jdbcType=BIGINT},
+            img_url     = #{imgUrl,jdbcType=VARCHAR},
+            del_flag    = #{delFlag,jdbcType=BIT},
+            create_date = #{createDate,jdbcType=TIMESTAMP},
+            update_date = #{updateDate,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="increaseSales">
+        update item
+        set sales = sales + #{amount,jdbcType=INTEGER}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lamarsan.seckill.dao.ItemStockDAO">
+    <resultMap id="BaseResultMap" type="com.lamarsan.seckill.entities.ItemStockDO">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="stock" jdbcType="BIGINT" property="stock"/>
+        <result column="item_id" jdbcType="BIGINT" property="itemId"/>
+        <result column="del_flag" jdbcType="BIT" property="delFlag"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="update_date" jdbcType="TIMESTAMP" property="updateDate"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, stock, item_id, del_flag, create_date, update_date
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from item_stock
+        where id = #{id,jdbcType=BIGINT} and del_flag = 0
+    </select>
+    <select id="selectByItemId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from item_stock
+        where item_id = #{itemId,jdbcType=BIGINT} and del_flag = 0
+    </select>
+    <select id="selectByItemIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from item_stock
+        where item_id in
+        <foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        and del_flag = 0
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete
+        from item_stock
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+    <insert id="insert" parameterType="com.lamarsan.seckill.entities.ItemStockDO" keyProperty="id"
+            useGeneratedKeys="true">
+        insert into item_stock (id, stock, item_id,
+                                del_flag, create_date, update_date)
+        values (#{id,jdbcType=BIGINT}, #{stock,jdbcType=BIGINT}, #{itemId,jdbcType=BIGINT},
+                #{delFlag,jdbcType=BIT}, #{createDate,jdbcType=TIMESTAMP}, #{updateDate,jdbcType=TIMESTAMP})
+    </insert>
+    <insert id="insertSelective" parameterType="com.lamarsan.seckill.entities.ItemStockDO" keyProperty="id"
+            useGeneratedKeys="true">
+        insert into item_stock
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="stock != null">
+                stock,
+            </if>
+            <if test="itemId != null">
+                item_id,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+            <if test="createDate != null">
+                create_date,
+            </if>
+            <if test="updateDate != null">
+                update_date,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="stock != null">
+                #{stock,jdbcType=BIGINT},
+            </if>
+            <if test="itemId != null">
+                #{itemId,jdbcType=BIGINT},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=BIT},
+            </if>
+            <if test="createDate != null">
+                #{createDate,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateDate != null">
+                #{updateDate,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.lamarsan.seckill.entities.ItemStockDO">
+        update item_stock
+        <set>
+            <if test="stock != null">
+                stock = #{stock,jdbcType=BIGINT},
+            </if>
+            <if test="itemId != null">
+                item_id = #{itemId,jdbcType=BIGINT},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=BIT},
+            </if>
+            <if test="createDate != null">
+                create_date = #{createDate,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateDate != null">
+                update_date = #{updateDate,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.lamarsan.seckill.entities.ItemStockDO">
+        update item_stock
+        set stock       = #{stock,jdbcType=BIGINT},
+            item_id     = #{itemId,jdbcType=BIGINT},
+            del_flag    = #{delFlag,jdbcType=BIT},
+            create_date = #{createDate,jdbcType=TIMESTAMP},
+            update_date = #{updateDate,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <update id="decreaseStock">
+        update item_stock
+        set stock = stock - #{amount,jdbcType=INTEGER}
+        where item_id = #{itemId,jdbcType=BIGINT}
+          and stock >= #{amount,jdbcType=INTEGER}
+    </update>
+</mapper>
