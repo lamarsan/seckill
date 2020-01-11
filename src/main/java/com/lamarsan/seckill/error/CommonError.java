@@ -2,7 +2,7 @@ package com.lamarsan.seckill.error;
 
 /**
  * className: CommonError
- * description: TODO
+ * description: Error接口
  *
  * @author lamar
  * @version 1.0

@@ -7,7 +7,7 @@ import lombok.ToString;
 
 /**
  * className: RestResponseModel
- * description: TODO
+ * description: 业务返回信息封装
  *
  * @author lamar
  * @version 1.0

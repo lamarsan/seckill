@@ -1,10 +1,8 @@
 package com.lamarsan.seckill.error;
 
-import lombok.Data;
-
 /**
  * className: EmBusinessError
- * description: TODO
+ * description: 异常枚举
  *
  * @author lamar
  * @version 1.0

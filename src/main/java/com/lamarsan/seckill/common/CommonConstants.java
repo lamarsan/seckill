@@ -2,7 +2,7 @@ package com.lamarsan.seckill.common;
 
 /**
  * className: CommonConstants
- * description: TODO
+ * description: content_type 常量
  *
  * @author lamar
  * @version 1.0

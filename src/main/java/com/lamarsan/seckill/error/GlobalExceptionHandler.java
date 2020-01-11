@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 /**
  * className: GlobalExceptionHandler
- * description: TODO
+ * description: 全局异常处理
  *
  * @author lamar
  * @version 1.0
