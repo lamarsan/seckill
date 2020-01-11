@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
  * className: WebServerConfig
  * description: 内嵌tomcat配置
  * 当Spring容器内没有TomcatEmbeddedServletContainerFactory这个bean时，会把此bean加载进spring容器中
+ * 防止被连续攻击与用户无意间的闲置操作。
  *
  * @author lamar
  * @version 1.0
