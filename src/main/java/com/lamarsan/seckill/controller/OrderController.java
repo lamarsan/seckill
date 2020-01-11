@@ -12,6 +12,8 @@ import com.lamarsan.seckill.service.OrderService;
 import com.lamarsan.seckill.utils.RedisUtil;
 import com.lamarsan.seckill.vo.ItemVO;
 import com.sun.org.apache.xpath.internal.operations.Bool;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 @Controller("order")
 @RequestMapping("/order")
 @CrossOrigin(allowCredentials = "true", allowedHeaders = "*")
+@Api(tags = "订单")
 public class OrderController {
     @Autowired
     private OrderService orderService;
@@ -36,6 +39,7 @@ public class OrderController {
     @Autowired
     private RedisUtil redisUtil;
 
+    @ApiOperation(value = "下单")
     @PostMapping(value = "/insert")
     @ResponseBody
     public RestResponseModel orderInsert(@RequestBody @Validated OrderInsertForm orderInsertForm) {

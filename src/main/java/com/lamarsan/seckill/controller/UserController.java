@@ -11,7 +11,8 @@ import com.lamarsan.seckill.service.UserService;
 import com.lamarsan.seckill.utils.MD5Util;
 import com.lamarsan.seckill.utils.RedisUtil;
 import com.lamarsan.seckill.utils.TransferUtil;
-import com.lamarsan.seckill.vo.UserVO;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -34,6 +35,7 @@ import static com.lamarsan.seckill.common.CommonConstants.CONTENT_TYPE_FORMED;
 @Controller("user")
 @RequestMapping("/user")
 @CrossOrigin(allowCredentials = "true", allowedHeaders = "*")
+@Api(tags = "用户")
 public class UserController {
     @Autowired
     private UserService userService;
@@ -42,17 +44,19 @@ public class UserController {
     @Autowired
     private TransferUtil transferUtil;
 
+    @ApiOperation(value = "登录")
     @PostMapping("/login")
     @ResponseBody
     public RestResponseModel login(@RequestBody @Validated UserLoginForm userLoginForm) {
         // 用户登录
         UserDTO userDTO = userService.validateLogin(userLoginForm.getTelphone(), MD5Util.EncodeByMd5(userLoginForm.getEncrptPassword()));
         // 将登录凭证加入到session
-        redisUtil.set("IS_LOGIN", true,300);
-        redisUtil.set("LOGIN_USER", userDTO,300);
+        redisUtil.set("IS_LOGIN", true, 300);
+        redisUtil.set("LOGIN_USER", userDTO, 300);
         return RestResponseModel.create(null);
     }
 
+    @ApiOperation(value = "注册")
     @PostMapping(value = "/register")
     @ResponseBody
     public RestResponseModel register(@RequestBody @Validated UserRigisterForm userRigisterForm) {
@@ -70,6 +74,7 @@ public class UserController {
         return RestResponseModel.create(null);
     }
 
+    @ApiOperation(value = "生成验证码")
     @PostMapping(value = "/getotp", consumes = {CONTENT_TYPE_FORMED})
     @ResponseBody
     public RestResponseModel getOtp(@RequestParam(name = "telphone") String telphone) {
@@ -85,7 +90,8 @@ public class UserController {
         return RestResponseModel.create(null);
     }
 
-    @RequestMapping("/get")
+    @ApiOperation(value = "获取用户信息")
+    @GetMapping("/get")
     @ResponseBody
     public RestResponseModel getUser(@RequestParam(name = "id") Long id) {
         UserDTO userDTO = userService.getUserById(id);

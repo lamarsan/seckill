@@ -6,6 +6,8 @@ import com.lamarsan.seckill.form.ItemInsertForm;
 import com.lamarsan.seckill.service.ItemService;
 import com.lamarsan.seckill.utils.TransferUtil;
 import com.lamarsan.seckill.vo.ItemVO;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -26,12 +28,14 @@ import java.util.stream.Collectors;
 @Controller("item")
 @RequestMapping("/item")
 @CrossOrigin(allowCredentials = "true", allowedHeaders = "*")
+@Api(tags = "商品")
 public class ItemController {
     @Autowired
     ItemService itemService;
     @Autowired
     TransferUtil transferUtil;
 
+    @ApiOperation(value = "新增商品")
     @PostMapping(value = "/insert")
     @ResponseBody
     public RestResponseModel itemInsert(@RequestBody @Validated ItemInsertForm itemInsertForm) {
@@ -42,6 +46,7 @@ public class ItemController {
         return RestResponseModel.create(itemVO);
     }
 
+    @ApiOperation(value = "获得商品")
     @GetMapping(value = "/get")
     @ResponseBody
     public RestResponseModel getItem(@RequestParam(name = "id") Long id) {
@@ -50,6 +55,7 @@ public class ItemController {
         return RestResponseModel.create(itemVO);
     }
 
+    @ApiOperation(value = "商品列表")
     @GetMapping(value = "/list")
     @ResponseBody
     public RestResponseModel listItem() {
