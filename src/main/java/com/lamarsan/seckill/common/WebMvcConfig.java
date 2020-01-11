@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * className: WebMvcConfigurerConfig
- * description: TODO
+ * description: Swagger配置
  *
  * @author lamar
  * @version 1.0
@@ -16,7 +16,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Configuration
 @EnableWebMvc
-public class WebMvcConfigurerConfig implements WebMvcConfigurer {
+public class WebMvcConfig implements WebMvcConfigurer {
     private CorsConfiguration buildConfig() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.addAllowedOrigin("*");
