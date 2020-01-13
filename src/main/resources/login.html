@@ -62,12 +62,13 @@
                 type: "POST",
                 dataType: 'json',
                 contentType: "application/json;charset=UTF-8",
-                url: "http://"+ g_host +"/user/login",
+                url: "http://" + g_host + "/user/login",
                 data: JSON.stringify(userLoginForm),
                 xhrFields: {withCredentials: true},
                 success: function (data) {
                     if (data.status === "success") {
                         alert("登录成功");
+                        window.localStorage["token"] = data.data;
                         window.location.href = "listItem.html";
                     } else {
                         alert("登录失败，原因为" + data.data.errMsg);

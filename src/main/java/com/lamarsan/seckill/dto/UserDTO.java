@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.io.Serializable;
+
 /**
  * className: UserDTO
  * description: 用户数据传输对象
@@ -17,7 +19,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class UserDTO {
+public class UserDTO implements Serializable {
     private Long id;
     private String name;
     private Integer gender;

@@ -1,7 +1,7 @@
 spring:
   datasource:
     url: jdbc:mysql://127.0.0.1/seckill?serverTimezone=GMT%2B8&&useCursorFetch=true&&characterEncoding=utf8
-    username: root
+    username: user
     password:
     driver-class-name: com.mysql.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
@@ -10,6 +10,10 @@ spring:
     host: 127.0.0.1
     port: 6379
     password:
+    jedis:
+      pool:
+        max-active: 50
+        min-idle: 20
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml

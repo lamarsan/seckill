@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static com.lamarsan.seckill.common.CommonConstants.CONTENT_TYPE_FORMED;
 
@@ -50,10 +52,11 @@ public class UserController {
     public RestResponseModel login(@RequestBody @Validated UserLoginForm userLoginForm) {
         // 用户登录
         UserDTO userDTO = userService.validateLogin(userLoginForm.getTelphone(), MD5Util.EncodeByMd5(userLoginForm.getEncrptPassword()));
-        // 将登录凭证加入到session
-        redisUtil.set("IS_LOGIN", true, 300);
-        redisUtil.set("LOGIN_USER", userDTO, 300);
-        return RestResponseModel.create(null);
+        // 将UserDTO加入到redis
+        String uuidToken = UUID.randomUUID().toString();
+        uuidToken = uuidToken.replace("-", "");
+        redisUtil.set(uuidToken, userDTO, 3600);
+        return RestResponseModel.create(uuidToken);
     }
 
     @ApiOperation(value = "注册")
