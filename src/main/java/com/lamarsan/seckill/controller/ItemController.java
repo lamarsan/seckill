@@ -4,6 +4,7 @@ import com.lamarsan.seckill.common.RestResponseModel;
 import com.lamarsan.seckill.dto.ItemDTO;
 import com.lamarsan.seckill.form.ItemInsertForm;
 import com.lamarsan.seckill.service.ItemService;
+import com.lamarsan.seckill.utils.RedisUtil;
 import com.lamarsan.seckill.utils.TransferUtil;
 import com.lamarsan.seckill.vo.ItemVO;
 import io.swagger.annotations.Api;
@@ -34,6 +35,8 @@ public class ItemController {
     ItemService itemService;
     @Autowired
     TransferUtil transferUtil;
+    @Autowired
+    RedisUtil redisUtil;
 
     @ApiOperation(value = "新增商品")
     @PostMapping(value = "/insert")
@@ -50,7 +53,11 @@ public class ItemController {
     @GetMapping(value = "/get")
     @ResponseBody
     public RestResponseModel getItem(@RequestParam(name = "id") Long id) {
-        ItemDTO itemDTO = itemService.getItemById(id);
+        ItemDTO itemDTO = (ItemDTO) redisUtil.get("item_" + id);
+        if (itemDTO == null) {
+            itemDTO = itemService.getItemById(id);
+            redisUtil.set("item_" + id, itemDTO, 600);
+        }
         ItemVO itemVO = transferUtil.transferToItemVO(itemDTO);
         return RestResponseModel.create(itemVO);
     }

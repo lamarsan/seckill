@@ -1,4 +1,4 @@
-package com.lamarsan.seckill.common;
+package com.lamarsan.seckill.config;
 
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;

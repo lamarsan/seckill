@@ -1,4 +1,4 @@
-package com.lamarsan.seckill.common;
+package com.lamarsan.seckill.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;

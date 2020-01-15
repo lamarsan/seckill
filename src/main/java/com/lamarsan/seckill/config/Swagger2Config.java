@@ -1,4 +1,4 @@
-package com.lamarsan.seckill.common;
+package com.lamarsan.seckill.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
