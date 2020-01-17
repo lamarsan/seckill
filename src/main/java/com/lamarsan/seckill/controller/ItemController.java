@@ -3,6 +3,7 @@ package com.lamarsan.seckill.controller;
 import com.lamarsan.seckill.common.RestResponseModel;
 import com.lamarsan.seckill.dto.ItemDTO;
 import com.lamarsan.seckill.form.ItemInsertForm;
+import com.lamarsan.seckill.service.CacheService;
 import com.lamarsan.seckill.service.ItemService;
 import com.lamarsan.seckill.utils.RedisUtil;
 import com.lamarsan.seckill.utils.TransferUtil;
@@ -32,11 +33,13 @@ import java.util.stream.Collectors;
 @Api(tags = "商品")
 public class ItemController {
     @Autowired
-    ItemService itemService;
+    private ItemService itemService;
     @Autowired
-    TransferUtil transferUtil;
+    private TransferUtil transferUtil;
     @Autowired
-    RedisUtil redisUtil;
+    private RedisUtil redisUtil;
+    @Autowired
+    private CacheService cacheService;
 
     @ApiOperation(value = "新增商品")
     @PostMapping(value = "/insert")
@@ -53,10 +56,17 @@ public class ItemController {
     @GetMapping(value = "/get")
     @ResponseBody
     public RestResponseModel getItem(@RequestParam(name = "id") Long id) {
-        ItemDTO itemDTO = (ItemDTO) redisUtil.get("item_" + id);
+        ItemDTO itemDTO = null;
+        // 先取本地缓存
+        itemDTO = (ItemDTO) cacheService.getFromCommonCache("item_" + id);
         if (itemDTO == null) {
-            itemDTO = itemService.getItemById(id);
-            redisUtil.set("item_" + id, itemDTO, 600);
+            // 若本地缓存不存在，则从redis中取
+            itemDTO = (ItemDTO) redisUtil.get("item_" + id);
+            if (itemDTO == null) {
+                itemDTO = itemService.getItemById(id);
+                redisUtil.set("item_" + id, itemDTO, 600);
+            }
+            cacheService.setCommonCache("item_" + id, itemDTO);
         }
         ItemVO itemVO = transferUtil.transferToItemVO(itemDTO);
         return RestResponseModel.create(itemVO);
@@ -66,7 +76,7 @@ public class ItemController {
     @GetMapping(value = "/list")
     @ResponseBody
     public RestResponseModel listItem() {
-        List<ItemDTO> itemDTOList =  itemService.listItem();
+        List<ItemDTO> itemDTOList = itemService.listItem();
         List<ItemVO> itemVOList = itemDTOList.stream().map(transferUtil::transferToItemVO).collect(Collectors.toList());
         return RestResponseModel.create(itemVOList);
     }
