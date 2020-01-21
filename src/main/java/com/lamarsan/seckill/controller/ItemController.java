@@ -38,8 +38,6 @@ public class ItemController {
     private TransferUtil transferUtil;
     @Autowired
     private RedisUtil redisUtil;
-    @Autowired
-    private CacheService cacheService;
 
     @ApiOperation(value = "新增商品")
     @PostMapping(value = "/insert")
@@ -56,17 +54,10 @@ public class ItemController {
     @GetMapping(value = "/get")
     @ResponseBody
     public RestResponseModel getItem(@RequestParam(name = "id") Long id) {
-        ItemDTO itemDTO = null;
-        // 先取本地缓存
-        itemDTO = (ItemDTO) cacheService.getFromCommonCache("item_" + id);
+        ItemDTO itemDTO = (ItemDTO) redisUtil.get("item_" + id);
         if (itemDTO == null) {
-            // 若本地缓存不存在，则从redis中取
-            itemDTO = (ItemDTO) redisUtil.get("item_" + id);
-            if (itemDTO == null) {
-                itemDTO = itemService.getItemById(id);
-                redisUtil.set("item_" + id, itemDTO, 600);
-            }
-            cacheService.setCommonCache("item_" + id, itemDTO);
+            itemDTO = itemService.getItemById(id);
+            redisUtil.set("item_" + id, itemDTO, 600);
         }
         ItemVO itemVO = transferUtil.transferToItemVO(itemDTO);
         return RestResponseModel.create(itemVO);

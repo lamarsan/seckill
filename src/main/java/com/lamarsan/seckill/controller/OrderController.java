@@ -57,6 +57,7 @@ public class OrderController {
             throw new BusinessException(EmBusinessError.USER_NOT_LOGIN);
         }
         OrderDTO orderDTO = orderService.createOrder(userDTO.getId(), orderInsertForm.getItemId(), orderInsertForm.getPromoId(), orderInsertForm.getAmount());
+        redisUtil.del("item_" + orderDTO.getItemId());
         return RestResponseModel.create(orderDTO);
     }
 }
