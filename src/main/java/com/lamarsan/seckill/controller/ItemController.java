@@ -4,6 +4,7 @@ import com.lamarsan.seckill.common.RestResponseModel;
 import com.lamarsan.seckill.dto.ItemDTO;
 import com.lamarsan.seckill.form.ItemInsertForm;
 import com.lamarsan.seckill.service.ItemService;
+import com.lamarsan.seckill.service.PromoService;
 import com.lamarsan.seckill.utils.RedisUtil;
 import com.lamarsan.seckill.vo.ItemVO;
 import io.swagger.annotations.Api;
@@ -35,6 +36,8 @@ public class ItemController {
     private ItemService itemService;
     @Autowired
     private RedisUtil redisUtil;
+    @Autowired
+    private PromoService promoService;
 
     @ApiOperation(value = "新增商品")
     @PostMapping(value = "/insert")
@@ -67,6 +70,14 @@ public class ItemController {
         List<ItemDTO> itemDTOList = itemService.listItem();
         List<ItemVO> itemVOList = itemDTOList.stream().map(this::transferToItemVO).collect(Collectors.toList());
         return RestResponseModel.create(itemVOList);
+    }
+
+    @ApiOperation(value = "发布活动")
+    @GetMapping(value = "/publishPromo")
+    @ResponseBody
+    public RestResponseModel publishPromo(@RequestParam(name = "id") Long id) {
+        promoService.publishPromo(id);
+        return RestResponseModel.create(null);
     }
 
     private ItemVO transferToItemVO(ItemDTO itemDTO) {

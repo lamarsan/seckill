@@ -67,8 +67,8 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         // 2、落单减库存（落单时，直接锁住库存）   支付减库存（支付成功后再减库存）
-        int affectedRow = itemStockDAO.decreaseStock(itemId, amount);
-        if (affectedRow < 0) {
+        boolean result = itemService.decreaseStock(itemId, amount);
+        if (!result) {
             throw new BusinessException(EmBusinessError.STOCK_NOT_ENOUGH);
         }
         // 3、订单入库

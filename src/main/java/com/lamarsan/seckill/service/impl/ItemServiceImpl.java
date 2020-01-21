@@ -7,9 +7,15 @@ import com.lamarsan.seckill.dto.ItemDTO;
 import com.lamarsan.seckill.dto.PromoDTO;
 import com.lamarsan.seckill.entities.ItemDO;
 import com.lamarsan.seckill.entities.ItemStockDO;
+import com.lamarsan.seckill.error.BusinessException;
+import com.lamarsan.seckill.mq.ProducerMQ;
 import com.lamarsan.seckill.service.ItemService;
 import com.lamarsan.seckill.service.PromoService;
 import com.lamarsan.seckill.utils.RedisUtil;
+import org.apache.rocketmq.client.exception.MQBrokerException;
+import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,6 +45,8 @@ public class ItemServiceImpl implements ItemService {
     private RedisUtil redisUtil;
     @Autowired
     private PromoService promoService;
+    @Autowired
+    private ProducerMQ producerMQ;
 
     @Override
     @Transactional
@@ -83,6 +91,24 @@ public class ItemServiceImpl implements ItemService {
             redisUtil.set("item_validate_" + id, itemDTO, 600);
         }
         return itemDTO;
+    }
+
+    @Override
+    @Transactional(rollbackFor = BusinessException.class)
+    public boolean decreaseStock(Long itemId, Integer amount) {
+        //int affectedRow = itemStockDAO.decreaseStock(itemId, amount);
+        long result = redisUtil.decr("promo_item_stock_" + itemId, amount);
+        if (result >= 0) {
+            boolean mqResult = producerMQ.asyncReduceStock(itemId, amount);
+            if (!mqResult) {
+                redisUtil.incr("promo_item_stock_" + itemId, amount);
+                return false;
+            }
+            return true;
+        } else {
+            redisUtil.incr("promo_item_stock_" + itemId, amount);
+            return false;
+        }
     }
 
     private ItemDTO transferToItemDTO(ItemDO itemDO, ItemStockDO itemStockDO) {

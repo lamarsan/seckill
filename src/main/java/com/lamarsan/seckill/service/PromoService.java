@@ -11,5 +11,13 @@ import com.lamarsan.seckill.dto.PromoDTO;
  * @date 2020/1/10 19:01
  */
 public interface PromoService {
+    /**
+     * 根据itemId获取即将进行或正在进行的秒杀活动
+     */
     PromoDTO getPromoByItemId(Long itemId);
+
+    /**
+     * 发布活动
+     */
+    void publishPromo(Long promoId);
 }

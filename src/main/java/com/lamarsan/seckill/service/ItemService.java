@@ -1,6 +1,7 @@
 package com.lamarsan.seckill.service;
 
 import com.lamarsan.seckill.dto.ItemDTO;
+import io.swagger.models.auth.In;
 
 import java.util.List;
 
@@ -32,4 +33,6 @@ public interface ItemService {
      * item及promo缓存模型
      */
     ItemDTO getItemByIdInCache(Long id);
+
+    boolean decreaseStock(Long itemId, Integer amount);
 }
