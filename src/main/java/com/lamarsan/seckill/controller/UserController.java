@@ -10,7 +10,7 @@ import com.lamarsan.seckill.error.EmBusinessError;
 import com.lamarsan.seckill.service.UserService;
 import com.lamarsan.seckill.utils.MD5Util;
 import com.lamarsan.seckill.utils.RedisUtil;
-import com.lamarsan.seckill.utils.TransferUtil;
+import com.lamarsan.seckill.vo.UserVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static com.lamarsan.seckill.common.CommonConstants.CONTENT_TYPE_FORMED;
 
@@ -43,8 +42,6 @@ public class UserController {
     private UserService userService;
     @Resource
     private RedisUtil redisUtil;
-    @Autowired
-    private TransferUtil transferUtil;
 
     @ApiOperation(value = "登录")
     @PostMapping("/login")
@@ -101,6 +98,15 @@ public class UserController {
         if (userDTO == null) {
             throw new BusinessException(EmBusinessError.USER_NOT_EXIST);
         }
-        return RestResponseModel.create(transferUtil.transferToUserVO(userDTO));
+        return RestResponseModel.create(transferToUserVO(userDTO));
+    }
+
+    private UserVO transferToUserVO(UserDTO userDTO) {
+        if (userDTO == null) {
+            return null;
+        }
+        UserVO userVO = new UserVO();
+        BeanUtils.copyProperties(userDTO, userVO);
+        return userVO;
     }
 }

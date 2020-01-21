@@ -8,7 +8,8 @@ import com.lamarsan.seckill.entities.UserPasswordDO;
 import com.lamarsan.seckill.error.BusinessException;
 import com.lamarsan.seckill.error.EmBusinessError;
 import com.lamarsan.seckill.service.UserService;
-import com.lamarsan.seckill.utils.TransferUtil;
+import com.lamarsan.seckill.utils.RedisUtil;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -29,29 +30,29 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserPasswordDAO userPasswordDAO;
     @Autowired
-    private TransferUtil transferUtil;
+    private RedisUtil redisUtil;
 
     @Override
     public UserDTO getUserById(Long id) {
         UserDO userDO = userDAO.selectByPrimaryKey(id);
         UserPasswordDO userPasswordDO = userPasswordDAO.selectByUserId(id);
-        return transferUtil.transferToUserDTO(userDO, userPasswordDO);
+        return transferToUserDTO(userDO, userPasswordDO);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = BusinessException.class)
     public void register(UserDTO userDTO) {
         if (userDTO == null) {
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR);
         }
-        UserDO userDO = transferUtil.transeferToUserDO(userDTO);
+        UserDO userDO = transeferToUserDO(userDTO);
         try {
             userDAO.insertSelective(userDO);
         } catch (DuplicateKeyException ex) {
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "手机号已存在");
         }
         userDTO.setId(userDO.getId());
-        UserPasswordDO userPasswordDO = transferUtil.transferToUserPasswordDO(userDTO);
+        UserPasswordDO userPasswordDO = transferToUserPasswordDO(userDTO);
         userPasswordDAO.insertSelective(userPasswordDO);
     }
 
@@ -63,10 +64,51 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(EmBusinessError.USER_LOGIN_FAIL);
         }
         UserPasswordDO userPasswordDO = userPasswordDAO.selectByUserId(userDO.getId());
-        UserDTO userDTO = transferUtil.transferToUserDTO(userDO, userPasswordDO);
+        UserDTO userDTO = transferToUserDTO(userDO, userPasswordDO);
         // 比对密码
         if (!com.alibaba.druid.util.StringUtils.equals(encrptPassword, userDTO.getEncrptPassword())) {
             throw new BusinessException(EmBusinessError.USER_LOGIN_FAIL);
+        }
+        return userDTO;
+    }
+
+    @Override
+    public UserDTO getUserByIdInCache(Long id) {
+        UserDTO userDTO = (UserDTO) redisUtil.get("user_validate_" + id);
+        if (userDTO == null) {
+            userDTO = this.getUserById(id);
+            redisUtil.set("user_validate_" + id, userDTO, 600);
+        }
+        return userDTO;
+    }
+
+    private UserPasswordDO transferToUserPasswordDO(UserDTO userDTO) {
+        if (userDTO == null) {
+            return null;
+        }
+        UserPasswordDO userPasswordDO = new UserPasswordDO();
+        userPasswordDO.setEncrptPassword(userDTO.getEncrptPassword());
+        userPasswordDO.setUserId(userDTO.getId());
+        return userPasswordDO;
+    }
+
+    private UserDO transeferToUserDO(UserDTO userDTO) {
+        if (userDTO == null) {
+            return null;
+        }
+        UserDO userDO = new UserDO();
+        BeanUtils.copyProperties(userDTO, userDO);
+        return userDO;
+    }
+
+    private UserDTO transferToUserDTO(UserDO userDO, UserPasswordDO userPasswordDO) {
+        if (userDO == null) {
+            return null;
+        }
+        UserDTO userDTO = new UserDTO();
+        BeanUtils.copyProperties(userDO, userDTO);
+        if (userPasswordDO != null) {
+            userDTO.setEncrptPassword(userPasswordDO.getEncrptPassword());
         }
         return userDTO;
     }

@@ -27,4 +27,9 @@ public interface ItemService {
      * 商品详情浏览
      */
     ItemDTO getItemById(Long id);
+
+    /**
+     * item及promo缓存模型
+     */
+    ItemDTO getItemByIdInCache(Long id);
 }

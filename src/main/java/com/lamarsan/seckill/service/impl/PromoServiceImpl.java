@@ -4,13 +4,10 @@ import com.lamarsan.seckill.dao.PromoDAO;
 import com.lamarsan.seckill.dto.PromoDTO;
 import com.lamarsan.seckill.entities.PromoDO;
 import com.lamarsan.seckill.service.PromoService;
-import com.lamarsan.seckill.utils.TransferUtil;
 import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Date;
 
 /**
  * className: PromoServiceImpl
@@ -24,12 +21,29 @@ import java.util.Date;
 public class PromoServiceImpl implements PromoService {
     @Autowired
     PromoDAO promoDAO;
-    @Autowired
-    TransferUtil transferUtil;
 
     @Override
     public PromoDTO getPromoByItemId(Long itemId) {
         PromoDO promoDO = promoDAO.selectByItemId(itemId);
-        return transferUtil.transferToPromoDTO(promoDO);
+        return transferToPromoDTO(promoDO);
+    }
+
+    private PromoDTO transferToPromoDTO(PromoDO promoDO) {
+        if (promoDO == null) {
+            return null;
+        }
+        PromoDTO promoDTO = new PromoDTO();
+        BeanUtils.copyProperties(promoDO, promoDTO);
+        promoDTO.setStartDate(new DateTime(promoDO.getStartDate()));
+        promoDTO.setEndDate(new DateTime(promoDO.getEndDate()));
+        // 判断当前时间秒杀活动即将开始或正在进行
+        if (promoDTO.getStartDate().isAfterNow()) {
+            promoDTO.setStatus(1);
+        } else if (promoDTO.getEndDate().isBeforeNow()) {
+            promoDTO.setStatus(3);
+        } else {
+            promoDTO.setStatus(2);
+        }
+        return promoDTO;
     }
 }

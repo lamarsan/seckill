@@ -23,4 +23,6 @@ public interface UserService {
      * @param encrptPassword 加密密码
      */
     UserDTO validateLogin(String telphone, String encrptPassword);
+
+    UserDTO getUserByIdInCache(Long id);
 }

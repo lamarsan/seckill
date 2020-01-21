@@ -3,11 +3,13 @@ package com.lamarsan.seckill.service.impl;
 import com.lamarsan.seckill.dao.*;
 import com.lamarsan.seckill.dto.ItemDTO;
 import com.lamarsan.seckill.dto.OrderDTO;
+import com.lamarsan.seckill.dto.UserDTO;
 import com.lamarsan.seckill.entities.*;
 import com.lamarsan.seckill.error.BusinessException;
 import com.lamarsan.seckill.error.EmBusinessError;
+import com.lamarsan.seckill.service.ItemService;
 import com.lamarsan.seckill.service.OrderService;
-import com.lamarsan.seckill.utils.TransferUtil;
+import com.lamarsan.seckill.service.UserService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,7 +33,7 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private ItemDAO itemDAO;
     @Autowired
-    private UserDAO userDAO;
+    private UserService userService;
     @Autowired
     private ItemStockDAO itemStockDAO;
     @Autowired
@@ -39,20 +41,18 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private SequenceDAO sequenceDAO;
     @Autowired
-    private TransferUtil transferUtil;
+    private ItemService itemService;
 
     @Override
     @Transactional
     public OrderDTO createOrder(Long userId, Long itemId, Long promoId, Integer amount) {
         // 1、校验下单状态，下单的商品是否存在，用户是否合法，购买数量是否正确
-        ItemDO itemDO = itemDAO.selectByPrimaryKey(itemId);
-        ItemStockDO itemStockDO = itemStockDAO.selectByItemId(itemId);
-        ItemDTO itemDTO = transferUtil.transferToItemDTO(itemDO, itemStockDO);
+        ItemDTO itemDTO = itemService.getItemByIdInCache(itemId);
         if (itemDTO == null) {
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "商品信息不存在");
         }
-        UserDO userDO = userDAO.selectByPrimaryKey(userId);
-        if (userDO == null) {
+        UserDTO userDTO = userService.getUserByIdInCache(userId);
+        if (userDTO == null) {
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "用户信息不存在");
         }
         if (amount <= 0 || amount > 99) {
@@ -72,7 +72,7 @@ public class OrderServiceImpl implements OrderService {
             throw new BusinessException(EmBusinessError.STOCK_NOT_ENOUGH);
         }
         // 3、订单入库
-        OrderDTO orderDTO = new OrderDTO(userId, itemId, itemDO.getPrice(), amount, itemDO.getPrice().multiply(new BigDecimal(amount)));
+        OrderDTO orderDTO = new OrderDTO(userId, itemId, itemDTO.getPrice(), amount, itemDTO.getPrice().multiply(new BigDecimal(amount)));
         if (promoId != null) {
             // 秒杀活动
             orderDTO.setPromoId(promoId);
@@ -81,7 +81,7 @@ public class OrderServiceImpl implements OrderService {
         }
         // 生成交易流水号，订单号
         orderDTO.setId(generateOrderNo());
-        OrderDO orderDO = transferUtil.transferToOrderDO(orderDTO);
+        OrderDO orderDO = transferToOrderDO(orderDTO);
         orderDAO.insertSelective(orderDO);
         // 加上商品的销量
         itemDAO.increaseSales(itemId, amount);
@@ -116,5 +116,14 @@ public class OrderServiceImpl implements OrderService {
         // 最后2位为分库分表位
         stringBuilder.append("00");
         return stringBuilder.toString();
+    }
+
+    private OrderDO transferToOrderDO(OrderDTO orderDTO) {
+        if (orderDTO == null) {
+            return null;
+        }
+        OrderDO orderDO = new OrderDO();
+        BeanUtils.copyProperties(orderDTO, orderDO);
+        return orderDO;
     }
 }

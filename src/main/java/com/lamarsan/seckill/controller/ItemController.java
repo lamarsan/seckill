@@ -3,13 +3,12 @@ package com.lamarsan.seckill.controller;
 import com.lamarsan.seckill.common.RestResponseModel;
 import com.lamarsan.seckill.dto.ItemDTO;
 import com.lamarsan.seckill.form.ItemInsertForm;
-import com.lamarsan.seckill.service.CacheService;
 import com.lamarsan.seckill.service.ItemService;
 import com.lamarsan.seckill.utils.RedisUtil;
-import com.lamarsan.seckill.utils.TransferUtil;
 import com.lamarsan.seckill.vo.ItemVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.joda.time.format.DateTimeFormat;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -35,8 +34,6 @@ public class ItemController {
     @Autowired
     private ItemService itemService;
     @Autowired
-    private TransferUtil transferUtil;
-    @Autowired
     private RedisUtil redisUtil;
 
     @ApiOperation(value = "新增商品")
@@ -46,7 +43,7 @@ public class ItemController {
         ItemDTO itemDTO = new ItemDTO();
         BeanUtils.copyProperties(itemInsertForm, itemDTO);
         ItemDTO resultDTO = itemService.createItem(itemDTO);
-        ItemVO itemVO = transferUtil.transferToItemVO(resultDTO);
+        ItemVO itemVO = transferToItemVO(resultDTO);
         return RestResponseModel.create(itemVO);
     }
 
@@ -59,7 +56,7 @@ public class ItemController {
             itemDTO = itemService.getItemById(id);
             redisUtil.set("item_" + id, itemDTO, 600);
         }
-        ItemVO itemVO = transferUtil.transferToItemVO(itemDTO);
+        ItemVO itemVO = transferToItemVO(itemDTO);
         return RestResponseModel.create(itemVO);
     }
 
@@ -68,7 +65,31 @@ public class ItemController {
     @ResponseBody
     public RestResponseModel listItem() {
         List<ItemDTO> itemDTOList = itemService.listItem();
-        List<ItemVO> itemVOList = itemDTOList.stream().map(transferUtil::transferToItemVO).collect(Collectors.toList());
+        List<ItemVO> itemVOList = itemDTOList.stream().map(this::transferToItemVO).collect(Collectors.toList());
         return RestResponseModel.create(itemVOList);
+    }
+
+    private ItemVO transferToItemVO(ItemDTO itemDTO) {
+        if (itemDTO == null) {
+            return null;
+        }
+        ItemVO itemVO = new ItemVO();
+        BeanUtils.copyProperties(itemDTO, itemVO);
+        if (itemDTO.getPromoDTO() != null) {
+            if (itemDTO.getPromoDTO().getStatus() != 3) {
+                // 有正在进行的秒杀活动
+                itemVO.setPromoStatus(itemDTO.getPromoDTO().getStatus());
+                itemVO.setPromoId(itemDTO.getPromoDTO().getId());
+                itemVO.setStartDate(itemDTO.getPromoDTO().getStartDate().toString(DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")));
+                itemVO.setPromoPrice(itemDTO.getPromoDTO().getPromoItemPrice());
+            } else {
+                // 已结束
+                itemVO.setPromoStatus(0);
+            }
+        } else {
+            // 没有秒杀活动
+            itemVO.setPromoStatus(0);
+        }
+        return itemVO;
     }
 }
