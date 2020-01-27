@@ -10,12 +10,14 @@ import com.lamarsan.seckill.error.BusinessException;
 import com.lamarsan.seckill.error.EmBusinessError;
 import com.lamarsan.seckill.form.ItemInsertForm;
 import com.lamarsan.seckill.form.OrderInsertForm;
+import com.lamarsan.seckill.mq.ProducerMQ;
 import com.lamarsan.seckill.service.OrderService;
 import com.lamarsan.seckill.utils.RedisUtil;
 import com.lamarsan.seckill.vo.ItemVO;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.rocketmq.client.producer.MQProducer;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -42,6 +44,8 @@ public class OrderController {
     @Autowired
     private RedisUtil redisUtil;
     @Autowired
+    private ProducerMQ producerMQ;
+    @Autowired
     private HttpServletRequest httpServletRequest;
 
     @ApiOperation(value = "下单")
@@ -56,8 +60,10 @@ public class OrderController {
         if (userDTO == null) {
             throw new BusinessException(EmBusinessError.USER_NOT_LOGIN);
         }
-        OrderDTO orderDTO = orderService.createOrder(userDTO.getId(), orderInsertForm.getItemId(), orderInsertForm.getPromoId(), orderInsertForm.getAmount());
-        redisUtil.del("item_" + orderDTO.getItemId());
-        return RestResponseModel.create(orderDTO);
+        //OrderDTO orderDTO = orderService.createOrder(userDTO.getId(), orderInsertForm.getItemId(), orderInsertForm.getPromoId(), orderInsertForm.getAmount());
+        if (!producerMQ.transactionAsyncReduceStock(userDTO.getId(), orderInsertForm.getItemId(), orderInsertForm.getPromoId(), orderInsertForm.getAmount())) {
+            throw new BusinessException(EmBusinessError.UNKNOWN_ERROR, "下单失败");
+        }
+        return RestResponseModel.create(null);
     }
 }

@@ -12,10 +12,6 @@ import com.lamarsan.seckill.mq.ProducerMQ;
 import com.lamarsan.seckill.service.ItemService;
 import com.lamarsan.seckill.service.PromoService;
 import com.lamarsan.seckill.utils.RedisUtil;
-import org.apache.rocketmq.client.exception.MQBrokerException;
-import org.apache.rocketmq.client.exception.MQClientException;
-import org.apache.rocketmq.client.producer.SendResult;
-import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -99,16 +95,22 @@ public class ItemServiceImpl implements ItemService {
         //int affectedRow = itemStockDAO.decreaseStock(itemId, amount);
         long result = redisUtil.decr("promo_item_stock_" + itemId, amount);
         if (result >= 0) {
-            boolean mqResult = producerMQ.asyncReduceStock(itemId, amount);
-            if (!mqResult) {
-                redisUtil.incr("promo_item_stock_" + itemId, amount);
-                return false;
-            }
             return true;
         } else {
-            redisUtil.incr("promo_item_stock_" + itemId, amount);
+            increaseStock(itemId, amount);
             return false;
         }
+    }
+
+    @Override
+    public boolean increaseStock(Long itemId, Integer amount) {
+        redisUtil.incr("promo_item_stock_" + itemId, amount);
+        return true;
+    }
+
+    @Override
+    public boolean asyncDecreaseStock(Long itemId, Integer amount) {
+        return producerMQ.asyncReduceStock(itemId, amount);
     }
 
     private ItemDTO transferToItemDTO(ItemDO itemDO, ItemStockDO itemStockDO) {

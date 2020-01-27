@@ -85,6 +85,13 @@ public class OrderServiceImpl implements OrderService {
         orderDAO.insertSelective(orderDO);
         // 加上商品的销量
         itemDAO.increaseSales(itemId, amount);
+        // 异步更新库存
+        //boolean mqResult = itemService.asyncDecreaseStock(itemId, amount);
+        //if (!mqResult) {
+        //    itemService.increaseStock(itemId, amount);
+        //    throw new BusinessException(EmBusinessError.MQ_SEND_FAIL);
+        //}
+
         // 4、返回前端
         return orderDTO;
     }

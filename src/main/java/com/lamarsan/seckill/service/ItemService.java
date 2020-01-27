@@ -34,5 +34,18 @@ public interface ItemService {
      */
     ItemDTO getItemByIdInCache(Long id);
 
+    /**
+     * 库存扣减
+     */
     boolean decreaseStock(Long itemId, Integer amount);
+
+    /**
+     * 库存回补
+     */
+    boolean increaseStock(Long itemId, Integer amount);
+
+    /**
+     * 异步更新库存
+     */
+    boolean asyncDecreaseStock(Long itemId, Integer amount);
 }
