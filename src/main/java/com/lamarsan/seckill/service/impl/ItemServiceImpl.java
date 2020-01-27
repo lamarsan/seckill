@@ -1,5 +1,6 @@
 package com.lamarsan.seckill.service.impl;
 
+import com.lamarsan.seckill.common.RedisConstants;
 import com.lamarsan.seckill.dao.ItemDAO;
 import com.lamarsan.seckill.dao.ItemStockDAO;
 import com.lamarsan.seckill.dao.PromoDAO;
@@ -87,10 +88,10 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDTO getItemByIdInCache(Long id) {
-        ItemDTO itemDTO = (ItemDTO) redisUtil.get("item_validate_" + id);
+        ItemDTO itemDTO = (ItemDTO) redisUtil.get(RedisConstants.ITEM_DTO + id);
         if (itemDTO == null) {
             itemDTO = this.getItemById(id);
-            redisUtil.set("item_validate_" + id, itemDTO, 600);
+            redisUtil.set(RedisConstants.ITEM_DTO + id, itemDTO, 600);
         }
         return itemDTO;
     }
@@ -99,8 +100,12 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(rollbackFor = BusinessException.class)
     public boolean decreaseStock(Long itemId, Integer amount) {
         //int affectedRow = itemStockDAO.decreaseStock(itemId, amount);
-        long result = redisUtil.decr("promo_item_stock_" + itemId, amount);
-        if (result >= 0) {
+        long result = redisUtil.decr(RedisConstants.STOCK_NUM + itemId, amount);
+        if (result > 0) {
+            return true;
+        } else if (result == 0) {
+            // 打上已售罄的标识
+            redisUtil.set(RedisConstants.STOCK_ZERO + itemId, "true");
             return true;
         } else {
             increaseStock(itemId, amount);
@@ -110,7 +115,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public boolean increaseStock(Long itemId, Integer amount) {
-        redisUtil.incr("promo_item_stock_" + itemId, amount);
+        redisUtil.incr(RedisConstants.STOCK_NUM + itemId, amount);
         return true;
     }
 

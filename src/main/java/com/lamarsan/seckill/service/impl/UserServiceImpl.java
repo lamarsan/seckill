@@ -1,5 +1,6 @@
 package com.lamarsan.seckill.service.impl;
 
+import com.lamarsan.seckill.common.RedisConstants;
 import com.lamarsan.seckill.dao.UserDAO;
 import com.lamarsan.seckill.dao.UserPasswordDAO;
 import com.lamarsan.seckill.dto.UserDTO;
@@ -74,10 +75,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO getUserByIdInCache(Long id) {
-        UserDTO userDTO = (UserDTO) redisUtil.get("user_validate_" + id);
+        UserDTO userDTO = (UserDTO) redisUtil.get(RedisConstants.USER_DTO + id);
         if (userDTO == null) {
             userDTO = this.getUserById(id);
-            redisUtil.set("user_validate_" + id, userDTO, 600);
+            redisUtil.set(RedisConstants.USER_DTO + id, userDTO, 600);
         }
         return userDTO;
     }

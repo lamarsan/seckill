@@ -1,5 +1,6 @@
 package com.lamarsan.seckill.service.impl;
 
+import com.lamarsan.seckill.common.RedisConstants;
 import com.lamarsan.seckill.dao.PromoDAO;
 import com.lamarsan.seckill.dto.ItemDTO;
 import com.lamarsan.seckill.dto.PromoDTO;
@@ -43,7 +44,7 @@ public class PromoServiceImpl implements PromoService {
         }
         ItemDTO itemDTO = itemService.getItemById(promoDO.getItemId());
         // 将库存同步到redis
-        redisUtil.set("promo_item_stock_" + itemDTO.getId(), itemDTO.getStock());
+        redisUtil.set(RedisConstants.STOCK_NUM + itemDTO.getId(), itemDTO.getStock());
     }
 
     private PromoDTO transferToPromoDTO(PromoDO promoDO) {

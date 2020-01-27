@@ -1,6 +1,7 @@
 package com.lamarsan.seckill.controller;
 
 import com.alibaba.druid.util.StringUtils;
+import com.lamarsan.seckill.common.RedisConstants;
 import com.lamarsan.seckill.common.RestResponseModel;
 import com.lamarsan.seckill.dto.UserDTO;
 import com.lamarsan.seckill.error.BusinessException;
@@ -54,6 +55,10 @@ public class OrderController {
         UserDTO userDTO = (UserDTO) redisUtil.get(token);
         if (userDTO == null) {
             throw new BusinessException(EmBusinessErrorEnum.USER_NOT_LOGIN);
+        }
+        // 判断库存是否已售罄，若存在直接失败
+        if (redisUtil.hasKey(RedisConstants.STOCK_ZERO + orderInsertForm.getItemId())) {
+            throw new BusinessException(EmBusinessErrorEnum.STOCK_NOT_ENOUGH);
         }
         // 加入库存流水init状态
         String stockLogId = itemService.initStockLog(orderInsertForm.getItemId(), orderInsertForm.getAmount());

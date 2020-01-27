@@ -1,5 +1,6 @@
 package com.lamarsan.seckill.controller;
 
+import com.lamarsan.seckill.common.RedisConstants;
 import com.lamarsan.seckill.common.RestResponseModel;
 import com.lamarsan.seckill.dto.ItemDTO;
 import com.lamarsan.seckill.form.ItemInsertForm;
@@ -54,10 +55,10 @@ public class ItemController {
     @GetMapping(value = "/get")
     @ResponseBody
     public RestResponseModel getItem(@RequestParam(name = "id") Long id) {
-        ItemDTO itemDTO = (ItemDTO) redisUtil.get("item_" + id);
+        ItemDTO itemDTO = (ItemDTO) redisUtil.get(RedisConstants.ITEM_DTO + id);
         if (itemDTO == null) {
             itemDTO = itemService.getItemById(id);
-            redisUtil.set("item_" + id, itemDTO, 600);
+            redisUtil.set(RedisConstants.ITEM_DTO + id, itemDTO, 600);
         }
         ItemVO itemVO = transferToItemVO(itemDTO);
         return RestResponseModel.create(itemVO);
