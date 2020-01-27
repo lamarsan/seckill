@@ -6,7 +6,7 @@ import com.lamarsan.seckill.dto.UserDTO;
 import com.lamarsan.seckill.form.UserLoginForm;
 import com.lamarsan.seckill.form.UserRigisterForm;
 import com.lamarsan.seckill.error.BusinessException;
-import com.lamarsan.seckill.error.EmBusinessError;
+import com.lamarsan.seckill.em.EmBusinessErrorEnum;
 import com.lamarsan.seckill.service.UserService;
 import com.lamarsan.seckill.utils.MD5Util;
 import com.lamarsan.seckill.utils.RedisUtil;
@@ -63,7 +63,7 @@ public class UserController {
         // 验证手机号和对应的otpcode相符合
         String inSessionOtpCode = (String) redisUtil.get(userRigisterForm.getTelphone());
         if (!StringUtils.equals(userRigisterForm.getOtpCode(), inSessionOtpCode)) {
-            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "短信验证码不符合");
+            throw new BusinessException(EmBusinessErrorEnum.PARAMETER_VALIDATION_ERROR, "短信验证码不符合");
         }
         // 用户注册流程
         userRigisterForm.setRegisterMode("byphone");
@@ -96,7 +96,7 @@ public class UserController {
     public RestResponseModel getUser(@RequestParam(name = "id") Long id) {
         UserDTO userDTO = userService.getUserById(id);
         if (userDTO == null) {
-            throw new BusinessException(EmBusinessError.USER_NOT_EXIST);
+            throw new BusinessException(EmBusinessErrorEnum.USER_NOT_EXIST);
         }
         return RestResponseModel.create(transferToUserVO(userDTO));
     }

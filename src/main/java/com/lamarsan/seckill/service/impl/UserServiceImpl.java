@@ -6,7 +6,7 @@ import com.lamarsan.seckill.dto.UserDTO;
 import com.lamarsan.seckill.entities.UserDO;
 import com.lamarsan.seckill.entities.UserPasswordDO;
 import com.lamarsan.seckill.error.BusinessException;
-import com.lamarsan.seckill.error.EmBusinessError;
+import com.lamarsan.seckill.em.EmBusinessErrorEnum;
 import com.lamarsan.seckill.service.UserService;
 import com.lamarsan.seckill.utils.RedisUtil;
 import org.springframework.beans.BeanUtils;
@@ -43,13 +43,13 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = BusinessException.class)
     public void register(UserDTO userDTO) {
         if (userDTO == null) {
-            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR);
+            throw new BusinessException(EmBusinessErrorEnum.PARAMETER_VALIDATION_ERROR);
         }
         UserDO userDO = transeferToUserDO(userDTO);
         try {
             userDAO.insertSelective(userDO);
         } catch (DuplicateKeyException ex) {
-            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "手机号已存在");
+            throw new BusinessException(EmBusinessErrorEnum.PARAMETER_VALIDATION_ERROR, "手机号已存在");
         }
         userDTO.setId(userDO.getId());
         UserPasswordDO userPasswordDO = transferToUserPasswordDO(userDTO);
@@ -61,13 +61,13 @@ public class UserServiceImpl implements UserService {
         // 通过用户手机获取用户信息
         UserDO userDO = userDAO.selectByTelphone(telphone);
         if (userDO == null) {
-            throw new BusinessException(EmBusinessError.USER_LOGIN_FAIL);
+            throw new BusinessException(EmBusinessErrorEnum.USER_LOGIN_FAIL);
         }
         UserPasswordDO userPasswordDO = userPasswordDAO.selectByUserId(userDO.getId());
         UserDTO userDTO = transferToUserDTO(userDO, userPasswordDO);
         // 比对密码
         if (!com.alibaba.druid.util.StringUtils.equals(encrptPassword, userDTO.getEncrptPassword())) {
-            throw new BusinessException(EmBusinessError.USER_LOGIN_FAIL);
+            throw new BusinessException(EmBusinessErrorEnum.USER_LOGIN_FAIL);
         }
         return userDTO;
     }

@@ -48,4 +48,9 @@ public interface ItemService {
      * 异步更新库存
      */
     boolean asyncDecreaseStock(Long itemId, Integer amount);
+
+    /**
+     * 初始化库存流水
+     */
+    String initStockLog(Long itemId, Integer amount);
 }

@@ -1,6 +1,9 @@
 package com.lamarsan.seckill.mq;
 
 import com.alibaba.fastjson.JSON;
+import com.lamarsan.seckill.dao.StockLogDAO;
+import com.lamarsan.seckill.em.StockLogStatusEnum;
+import com.lamarsan.seckill.entities.StockLogDO;
 import com.lamarsan.seckill.error.BusinessException;
 import com.lamarsan.seckill.service.OrderService;
 import com.lamarsan.seckill.utils.RedisUtil;
@@ -35,6 +38,8 @@ public class ProducerMQ {
 
     @Autowired
     OrderService orderService;
+    @Autowired
+    StockLogDAO stockLogDAO;
 
     @Value("${mq.nameserver.addr}")
     private String nameAddr;
@@ -61,10 +66,17 @@ public class ProducerMQ {
                 }
                 Long userId = Long.valueOf((String) ((Map) arg).get("userId"));
                 Integer amount = Integer.valueOf((String) ((Map) arg).get("amount"));
+                String stockLogId = (String) ((Map) arg).get("stockLogId");
                 try {
-                    orderService.createOrder(userId, itemId, promoId, amount);
+                    orderService.createOrder(userId, itemId, promoId, amount, stockLogId);
                 } catch (BusinessException e) {
                     e.printStackTrace();
+                    // 设置stockLog为回滚状态
+                    StockLogDO stockLogDO = stockLogDAO.selectByPrimaryKey(stockLogId);
+                    if (stockLogDO != null) {
+                        stockLogDO.setStatus(StockLogStatusEnum.FAIL_STATUS.getStatusCode());
+                        stockLogDAO.updateByPrimaryKeySelective(stockLogDO);
+                    }
                     return LocalTransactionState.ROLLBACK_MESSAGE;
                 }
                 return LocalTransactionState.COMMIT_MESSAGE;
@@ -78,8 +90,17 @@ public class ProducerMQ {
                 Map<String, Object> map = JSON.parseObject(jsonString, Map.class);
                 Long itemId = Long.valueOf((String) map.get("itemId"));
                 Integer amount = Integer.valueOf((String) map.get("amount"));
-
-                return null;
+                String stockLogId = (String) map.get("stockLogId");
+                StockLogDO stockLogDO = stockLogDAO.selectByPrimaryKey(stockLogId);
+                if (stockLogDO == null) {
+                    return LocalTransactionState.UNKNOW;
+                }
+                if (StockLogStatusEnum.SUCCESS_STATUS.getStatusCode() == stockLogDO.getStatus()) {
+                    return LocalTransactionState.COMMIT_MESSAGE;
+                } else if (StockLogStatusEnum.INIT_STATUS.getStatusCode() == stockLogDO.getStatus()) {
+                    return LocalTransactionState.UNKNOW;
+                }
+                return LocalTransactionState.ROLLBACK_MESSAGE;
             }
         });
     }
@@ -88,11 +109,11 @@ public class ProducerMQ {
      * 事务型
      * 投递出去状态为prepare，会进入executeLocalTransaction
      */
-    public boolean transactionAsyncReduceStock(Long userId, Long itemId, Long promoId, Integer amount) {
+    public boolean transactionAsyncReduceStock(Long userId, Long itemId, Long promoId, Integer amount, String stockLogId) {
         Map<String, Object> bodyMap = new HashMap<>();
         bodyMap.put("itemId", itemId.toString());
         bodyMap.put("amount", amount.toString());
-
+        bodyMap.put("stockLogId", stockLogId);
         Map<String, Object> argsMap = new HashMap<>();
         argsMap.put("itemId", itemId.toString());
         argsMap.put("amount", amount.toString());
@@ -102,6 +123,7 @@ public class ProducerMQ {
         } else {
             argsMap.put("promoId", promoId.toString());
         }
+        argsMap.put("stockLogId", stockLogId);
         Message message = new Message(topicName, "increase", JSON.toJSON(bodyMap).toString().getBytes(Charset.forName("UTF-8")));
         TransactionSendResult sendResult = null;
         try {

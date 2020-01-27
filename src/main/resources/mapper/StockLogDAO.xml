@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lamarsan.seckill.dao.StockLogDAO">
+    <resultMap id="BaseResultMap" type="com.lamarsan.seckill.entities.StockLogDO">
+        <id column="stock_log_id" jdbcType="VARCHAR" property="stockLogId"/>
+        <result column="item_id" jdbcType="BIGINT" property="itemId"/>
+        <result column="amount" jdbcType="INTEGER" property="amount"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="del_flag" jdbcType="BIT" property="delFlag"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="update_date" jdbcType="TIMESTAMP" property="updateDate"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        stock_log_id, item_id, amount, status, del_flag, create_date, update_date
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from stock_log
+        where stock_log_id = #{stockLogId,jdbcType=VARCHAR} and del_flag=0
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete
+        from stock_log
+        where stock_log_id = #{stockLogId,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert" parameterType="com.lamarsan.seckill.entities.StockLogDO">
+        insert into stock_log (stock_log_id, item_id, amount,
+                               status, del_flag, create_date,
+                               update_date)
+        values (#{stockLogId,jdbcType=VARCHAR}, #{itemId,jdbcType=BIGINT}, #{amount,jdbcType=INTEGER},
+                #{status,jdbcType=INTEGER}, #{delFlag,jdbcType=BIT}, #{createDate,jdbcType=TIMESTAMP},
+                #{updateDate,jdbcType=TIMESTAMP})
+    </insert>
+    <insert id="insertSelective" parameterType="com.lamarsan.seckill.entities.StockLogDO">
+        insert into stock_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="stockLogId != null">
+                stock_log_id,
+            </if>
+            <if test="itemId != null">
+                item_id,
+            </if>
+            <if test="amount != null">
+                amount,
+            </if>
+            <if test="status != null">
+                status,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+            <if test="createDate != null">
+                create_date,
+            </if>
+            <if test="updateDate != null">
+                update_date,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="stockLogId != null">
+                #{stockLogId,jdbcType=VARCHAR},
+            </if>
+            <if test="itemId != null">
+                #{itemId,jdbcType=BIGINT},
+            </if>
+            <if test="amount != null">
+                #{amount,jdbcType=INTEGER},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=INTEGER},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=BIT},
+            </if>
+            <if test="createDate != null">
+                #{createDate,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateDate != null">
+                #{updateDate,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.lamarsan.seckill.entities.StockLogDO">
+        update stock_log
+        <set>
+            <if test="itemId != null">
+                item_id = #{itemId,jdbcType=BIGINT},
+            </if>
+            <if test="amount != null">
+                amount = #{amount,jdbcType=INTEGER},
+            </if>
+            <if test="status != null">
+                status = #{status,jdbcType=INTEGER},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=BIT},
+            </if>
+            <if test="createDate != null">
+                create_date = #{createDate,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateDate != null">
+                update_date = #{updateDate,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where stock_log_id = #{stockLogId,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.lamarsan.seckill.entities.StockLogDO">
+        update stock_log
+        set item_id     = #{itemId,jdbcType=BIGINT},
+            amount      = #{amount,jdbcType=INTEGER},
+            status      = #{status,jdbcType=INTEGER},
+            del_flag    = #{delFlag,jdbcType=BIT},
+            create_date = #{createDate,jdbcType=TIMESTAMP},
+            update_date = #{updateDate,jdbcType=TIMESTAMP}
+        where stock_log_id = #{stockLogId,jdbcType=VARCHAR}
+    </update>
+</mapper>

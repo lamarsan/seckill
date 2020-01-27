@@ -1,9 +1,9 @@
 package com.lamarsan.seckill.error;
 
 import com.lamarsan.seckill.common.RestResponseModel;
+import com.lamarsan.seckill.em.EmBusinessErrorEnum;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
@@ -41,8 +41,8 @@ public class GlobalExceptionHandler {
             responseData.put("errCode", businessException.getErrCode());
             responseData.put("errMsg", businessException.getErrMsg());
         } else {
-            responseData.put("errCode", EmBusinessError.UNKNOWN_ERROR.getErrCode());
-            responseData.put("errMsg", EmBusinessError.UNKNOWN_ERROR.getErrMsg());
+            responseData.put("errCode", EmBusinessErrorEnum.UNKNOWN_ERROR.getErrCode());
+            responseData.put("errMsg", EmBusinessErrorEnum.UNKNOWN_ERROR.getErrMsg());
         }
         return RestResponseModel.create(responseData, "fail");
     }
@@ -82,6 +82,6 @@ public class GlobalExceptionHandler {
         } else {
             msg = "必填参数缺失";
         }
-        return RestResponseModel.create(EmBusinessError.PARAMETER_VALIDATION_ERROR, msg);
+        return RestResponseModel.create(EmBusinessErrorEnum.PARAMETER_VALIDATION_ERROR, msg);
     }
 }

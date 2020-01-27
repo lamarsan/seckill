@@ -2,23 +2,16 @@ package com.lamarsan.seckill.controller;
 
 import com.alibaba.druid.util.StringUtils;
 import com.lamarsan.seckill.common.RestResponseModel;
-import com.lamarsan.seckill.dto.ItemDTO;
-import com.lamarsan.seckill.dto.OrderDTO;
 import com.lamarsan.seckill.dto.UserDTO;
-import com.lamarsan.seckill.entities.UserDO;
 import com.lamarsan.seckill.error.BusinessException;
-import com.lamarsan.seckill.error.EmBusinessError;
-import com.lamarsan.seckill.form.ItemInsertForm;
+import com.lamarsan.seckill.em.EmBusinessErrorEnum;
 import com.lamarsan.seckill.form.OrderInsertForm;
 import com.lamarsan.seckill.mq.ProducerMQ;
+import com.lamarsan.seckill.service.ItemService;
 import com.lamarsan.seckill.service.OrderService;
 import com.lamarsan.seckill.utils.RedisUtil;
-import com.lamarsan.seckill.vo.ItemVO;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.apache.rocketmq.client.producer.MQProducer;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
@@ -47,6 +40,8 @@ public class OrderController {
     private ProducerMQ producerMQ;
     @Autowired
     private HttpServletRequest httpServletRequest;
+    @Autowired
+    private ItemService itemService;
 
     @ApiOperation(value = "下单")
     @PostMapping(value = "/insert")
@@ -54,15 +49,17 @@ public class OrderController {
     public RestResponseModel orderInsert(@RequestBody @Validated OrderInsertForm orderInsertForm) {
         String token = httpServletRequest.getParameterMap().get("token")[0];
         if (StringUtils.isEmpty(token)) {
-            throw new BusinessException(EmBusinessError.USER_NOT_LOGIN);
+            throw new BusinessException(EmBusinessErrorEnum.USER_NOT_LOGIN);
         }
         UserDTO userDTO = (UserDTO) redisUtil.get(token);
         if (userDTO == null) {
-            throw new BusinessException(EmBusinessError.USER_NOT_LOGIN);
+            throw new BusinessException(EmBusinessErrorEnum.USER_NOT_LOGIN);
         }
-        //OrderDTO orderDTO = orderService.createOrder(userDTO.getId(), orderInsertForm.getItemId(), orderInsertForm.getPromoId(), orderInsertForm.getAmount());
-        if (!producerMQ.transactionAsyncReduceStock(userDTO.getId(), orderInsertForm.getItemId(), orderInsertForm.getPromoId(), orderInsertForm.getAmount())) {
-            throw new BusinessException(EmBusinessError.UNKNOWN_ERROR, "下单失败");
+        // 加入库存流水init状态
+        String stockLogId = itemService.initStockLog(orderInsertForm.getItemId(), orderInsertForm.getAmount());
+        // 创建订单
+        if (!producerMQ.transactionAsyncReduceStock(userDTO.getId(), orderInsertForm.getItemId(), orderInsertForm.getPromoId(), orderInsertForm.getAmount(), stockLogId)) {
+            throw new BusinessException(EmBusinessErrorEnum.UNKNOWN_ERROR, "下单失败");
         }
         return RestResponseModel.create(null);
     }

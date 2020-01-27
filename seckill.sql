@@ -1,5 +1,5 @@
 ﻿# Host: 127.0.0.1  (Version 5.7.24-log)
-# Date: 2020-01-10 22:07:05
+# Date: 2020-01-27 19:58:31
 # Generator: MySQL-Front 6.1  (Build 1.26)
 
 
@@ -25,7 +25,7 @@ CREATE TABLE `item` (
 # Data for table "item"
 #
 
-INSERT INTO `item` VALUES (1,'iphone',8000.000000,'这是一个苹果手机',101,'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1578568047528&di=b62a1c9933701ec8183fbecdd6ea219a&imgtype=0&src=http%3A%2F%2Fimage.hxyxt.com%2Fmedias%2Fsys_master%2Fimages%2Fimages%2Fh79%2Fh11%2F9401117704222.jpg',0,'2020-01-09 16:28:29','2020-01-10 21:51:14'),(2,'redmi',1000.000000,'这是一个红米手机',89,'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1578571314685&di=84d9a62421b1736b0423d7fa9c2f610d&imgtype=0&src=http%3A%2F%2Fcdn.178hui.com%2Fupload%2F2019%2F0729%2F12341469807.jpg',0,'2020-01-09 17:14:07','2020-01-10 21:52:11');
+INSERT INTO `item` VALUES (1,'iphone',8000.000000,'这是一个苹果手机',123,'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1578568047528&di=b62a1c9933701ec8183fbecdd6ea219a&imgtype=0&src=http%3A%2F%2Fimage.hxyxt.com%2Fmedias%2Fsys_master%2Fimages%2Fimages%2Fh79%2Fh11%2F9401117704222.jpg',0,'2020-01-09 16:28:29','2020-01-21 23:00:18'),(2,'redmi',1000.000000,'这是一个红米手机',131,'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1578571314685&di=84d9a62421b1736b0423d7fa9c2f610d&imgtype=0&src=http%3A%2F%2Fcdn.178hui.com%2Fupload%2F2019%2F0729%2F12341469807.jpg',0,'2020-01-09 17:14:07','2020-01-27 19:51:16');
 
 #
 # Structure for table "item_stock"
@@ -46,7 +46,7 @@ CREATE TABLE `item_stock` (
 # Data for table "item_stock"
 #
 
-INSERT INTO `item_stock` VALUES (1,97,1,0,'2020-01-09 16:29:59','2020-01-10 21:51:14'),(2,99,2,0,'2020-01-09 17:14:07','2020-01-10 21:52:11');
+INSERT INTO `item_stock` VALUES (1,100,1,0,'2020-01-09 16:29:59','2020-01-27 19:58:17'),(2,100,2,0,'2020-01-09 17:14:07','2020-01-27 19:58:20');
 
 #
 # Structure for table "order_info"
@@ -115,7 +115,28 @@ CREATE TABLE `sequence_info` (
 # Data for table "sequence_info"
 #
 
-INSERT INTO `sequence_info` VALUES ('order_info',0,1,0,'2020-01-09 19:26:49','2020-01-10 22:06:06');
+INSERT INTO `sequence_info` VALUES ('order_info',68,1,0,'2020-01-09 19:26:49','2020-01-09 19:26:49');
+
+#
+# Structure for table "stock_log"
+#
+
+DROP TABLE IF EXISTS `stock_log`;
+CREATE TABLE `stock_log` (
+  `stock_log_id` varchar(64) NOT NULL DEFAULT '',
+  `item_id` bigint(20) NOT NULL DEFAULT '0',
+  `amount` int(11) NOT NULL DEFAULT '0',
+  `status` int(11) NOT NULL DEFAULT '0' COMMENT '// 1表示初始状态，2表示下单扣减库存成功，3表示下单回滚',
+  `del_flag` tinyint(1) NOT NULL DEFAULT '0',
+  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`stock_log_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+#
+# Data for table "stock_log"
+#
+
 
 #
 # Structure for table "user_info"

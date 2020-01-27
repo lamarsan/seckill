@@ -3,10 +3,13 @@ package com.lamarsan.seckill.service.impl;
 import com.lamarsan.seckill.dao.ItemDAO;
 import com.lamarsan.seckill.dao.ItemStockDAO;
 import com.lamarsan.seckill.dao.PromoDAO;
+import com.lamarsan.seckill.dao.StockLogDAO;
 import com.lamarsan.seckill.dto.ItemDTO;
 import com.lamarsan.seckill.dto.PromoDTO;
+import com.lamarsan.seckill.em.StockLogStatusEnum;
 import com.lamarsan.seckill.entities.ItemDO;
 import com.lamarsan.seckill.entities.ItemStockDO;
+import com.lamarsan.seckill.entities.StockLogDO;
 import com.lamarsan.seckill.error.BusinessException;
 import com.lamarsan.seckill.mq.ProducerMQ;
 import com.lamarsan.seckill.service.ItemService;
@@ -19,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +47,8 @@ public class ItemServiceImpl implements ItemService {
     private PromoService promoService;
     @Autowired
     private ProducerMQ producerMQ;
+    @Autowired
+    private StockLogDAO stockLogDAO;
 
     @Override
     @Transactional
@@ -111,6 +117,17 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public boolean asyncDecreaseStock(Long itemId, Integer amount) {
         return producerMQ.asyncReduceStock(itemId, amount);
+    }
+
+    @Override
+    public String initStockLog(Long itemId, Integer amount) {
+        StockLogDO stockLogDO = new StockLogDO();
+        stockLogDO.setItemId(itemId);
+        stockLogDO.setAmount(amount);
+        stockLogDO.setStockLogId(UUID.randomUUID().toString().replace("-", ""));
+        stockLogDO.setStatus(StockLogStatusEnum.INIT_STATUS.getStatusCode());
+        stockLogDAO.insertSelective(stockLogDO);
+        return stockLogDO.getStockLogId();
     }
 
     private ItemDTO transferToItemDTO(ItemDO itemDO, ItemStockDO itemStockDO) {
