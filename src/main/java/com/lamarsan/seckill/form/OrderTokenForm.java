@@ -5,26 +5,22 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 /**
- * className: OrderInsertForm
+ * className: OrderTokenForm
  * description: TODO
  *
  * @author lamar
  * @version 1.0
- * @date 2020/1/9 20:25
+ * @date 2020/1/28 20:17
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class OrderInsertForm {
+public class OrderTokenForm {
     @NotNull(message = "商品id不能为空")
     Long itemId;
-    @NotNull(message = "商品数量不能为空")
-    Integer amount;
     Long promoId;
-    String promoToken;
 }

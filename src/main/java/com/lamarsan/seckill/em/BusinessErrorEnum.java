@@ -3,14 +3,14 @@ package com.lamarsan.seckill.em;
 import com.lamarsan.seckill.error.CommonError;
 
 /**
- * className: EmBusinessErrorEnum
+ * className: BusinessErrorEnum
  * description: 异常枚举
  *
  * @author lamar
  * @version 1.0
  * @date 2020/1/4 14:37
  */
-public enum EmBusinessErrorEnum implements CommonError {
+public enum BusinessErrorEnum implements CommonError {
     // 通用错误类型10000
     PARAMETER_VALIDATION_ERROR(10001, "参数不合法"),
     UNKNOWN_ERROR(10002, "未知错误"),
@@ -28,7 +28,7 @@ public enum EmBusinessErrorEnum implements CommonError {
     private int errCode;
     private String errMsg;
 
-    EmBusinessErrorEnum(int errCode, String errMsg) {
+    BusinessErrorEnum(int errCode, String errMsg) {
         this.errCode = errCode;
         this.errMsg = errMsg;
     }

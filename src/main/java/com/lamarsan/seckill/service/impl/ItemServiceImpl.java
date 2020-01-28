@@ -7,6 +7,7 @@ import com.lamarsan.seckill.dao.PromoDAO;
 import com.lamarsan.seckill.dao.StockLogDAO;
 import com.lamarsan.seckill.dto.ItemDTO;
 import com.lamarsan.seckill.dto.PromoDTO;
+import com.lamarsan.seckill.em.PromoStatusEnum;
 import com.lamarsan.seckill.em.StockLogStatusEnum;
 import com.lamarsan.seckill.entities.ItemDO;
 import com.lamarsan.seckill.entities.ItemStockDO;
@@ -140,7 +141,7 @@ public class ItemServiceImpl implements ItemService {
         BeanUtils.copyProperties(itemStockDO, itemDTO);
         BeanUtils.copyProperties(itemDO, itemDTO);
         PromoDTO promoDTO = promoService.getPromoByItemId(itemDO.getId());
-        if (promoDTO != null && promoDTO.getStatus() != 3) {
+        if (promoDTO != null && promoDTO.getStatus() != PromoStatusEnum.FINISH.getStatusCode()) {
             itemDTO.setPromoDTO(promoDTO);
         }
         return itemDTO;

@@ -28,4 +28,9 @@ public class RedisConstants {
      * 对应商品库存是否售罄
      */
     public static final String STOCK_ZERO = "promo_item_stock_invalid_";
+
+    /**
+     * 秒杀令牌
+     */
+    public static final String PROMO_TOKEN = "promo_item_user_token_";
 }

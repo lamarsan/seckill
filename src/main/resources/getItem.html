@@ -67,10 +67,15 @@
 </body>
 <script>
     var g_itemVO = {};
+    var orderTokenForm = {
+        itemId: 0,
+        promoId: 0
+    };
     var orderInsertForm = {
         itemId: 0,
         amount: 0,
-        promoId: 0
+        promoId: 0,
+        promoToken:''
     };
     jQuery(document).ready(function () {
         $("#createorder").on("click", function () {
@@ -82,29 +87,51 @@
             orderInsertForm.itemId = g_itemVO.id;
             orderInsertForm.amount = 1;
             orderInsertForm.promoId = g_itemVO.promoId;
-            console.log(orderInsertForm);
+            orderTokenForm.itemId = g_itemVO.id;
+            orderTokenForm.promoId = g_itemVO.promoId;
             $.ajax({
                 type: "POST",
                 dataType: 'json',
                 contentType: "application/json;charset=UTF-8",
-                url: "http://" + g_host + "/order/insert?token=" + token,
-                data: JSON.stringify(orderInsertForm),
+                url: "http://" + g_host + "/order/generateToken?token=" + token,
+                data: JSON.stringify(orderTokenForm),
                 xhrFields: {withCredentials: true},
                 success: function (data) {
                     if (data.status === "success") {
-                        alert("下单成功");
-                        window.location.reload();
+                        orderInsertForm.promoToken = data.data;
+                        $.ajax({
+                            type: "POST",
+                            dataType: 'json',
+                            contentType: "application/json;charset=UTF-8",
+                            url: "http://" + g_host + "/order/insert?token=" + token,
+                            data: JSON.stringify(orderInsertForm),
+                            xhrFields: {withCredentials: true},
+                            success: function (data) {
+                                if (data.status === "success") {
+                                    alert("下单成功");
+                                    window.location.reload();
+                                } else {
+                                    alert("下单失败，原因为" + data.data.errMsg);
+                                    if (data.data.errCode === 20003) {
+                                        window.location.href = "login.html";
+                                    }
+                                }
+                            },
+                            error: function (data) {
+                                alert("下单失败，原因为" + data.responseText);
+                            }
+                        });
                     } else {
-                        alert("下单失败，原因为" + data.data.errMsg);
+                        alert("获取令牌失败，原因为" + data.data.errMsg);
                         if (data.data.errCode === 20003) {
                             window.location.href = "login.html";
                         }
                     }
                 },
                 error: function (data) {
-                    alert("下单失败，原因为" + data.responseText);
+                    alert("获取令牌失败，原因为" + data.responseText);
                 }
-            })
+            });
         });
 
         $.ajax({

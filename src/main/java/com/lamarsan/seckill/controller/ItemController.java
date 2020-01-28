@@ -3,6 +3,7 @@ package com.lamarsan.seckill.controller;
 import com.lamarsan.seckill.common.RedisConstants;
 import com.lamarsan.seckill.common.RestResponseModel;
 import com.lamarsan.seckill.dto.ItemDTO;
+import com.lamarsan.seckill.em.PromoStatusEnum;
 import com.lamarsan.seckill.form.ItemInsertForm;
 import com.lamarsan.seckill.service.ItemService;
 import com.lamarsan.seckill.service.PromoService;
@@ -88,7 +89,7 @@ public class ItemController {
         ItemVO itemVO = new ItemVO();
         BeanUtils.copyProperties(itemDTO, itemVO);
         if (itemDTO.getPromoDTO() != null) {
-            if (itemDTO.getPromoDTO().getStatus() != 3) {
+            if (itemDTO.getPromoDTO().getStatus() != PromoStatusEnum.FINISH.getStatusCode()) {
                 // 有正在进行的秒杀活动
                 itemVO.setPromoStatus(itemDTO.getPromoDTO().getStatus());
                 itemVO.setPromoId(itemDTO.getPromoDTO().getId());

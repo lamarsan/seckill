@@ -4,7 +4,8 @@ import com.lamarsan.seckill.dao.*;
 import com.lamarsan.seckill.dto.ItemDTO;
 import com.lamarsan.seckill.dto.OrderDTO;
 import com.lamarsan.seckill.dto.UserDTO;
-import com.lamarsan.seckill.em.EmBusinessErrorEnum;
+import com.lamarsan.seckill.em.BusinessErrorEnum;
+import com.lamarsan.seckill.em.PromoStatusEnum;
 import com.lamarsan.seckill.em.StockLogStatusEnum;
 import com.lamarsan.seckill.entities.*;
 import com.lamarsan.seckill.error.BusinessException;
@@ -34,10 +35,6 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private ItemDAO itemDAO;
     @Autowired
-    private UserService userService;
-    @Autowired
-    private ItemStockDAO itemStockDAO;
-    @Autowired
     private OrderDAO orderDAO;
     @Autowired
     private SequenceDAO sequenceDAO;
@@ -52,27 +49,15 @@ public class OrderServiceImpl implements OrderService {
         // 1、校验下单状态，下单的商品是否存在，用户是否合法，购买数量是否正确
         ItemDTO itemDTO = itemService.getItemByIdInCache(itemId);
         if (itemDTO == null) {
-            throw new BusinessException(EmBusinessErrorEnum.PARAMETER_VALIDATION_ERROR, "商品信息不存在");
-        }
-        UserDTO userDTO = userService.getUserByIdInCache(userId);
-        if (userDTO == null) {
-            throw new BusinessException(EmBusinessErrorEnum.PARAMETER_VALIDATION_ERROR, "用户信息不存在");
+            throw new BusinessException(BusinessErrorEnum.PARAMETER_VALIDATION_ERROR, "商品信息不存在");
         }
         if (amount <= 0 || amount > 99) {
-            throw new BusinessException(EmBusinessErrorEnum.PARAMETER_VALIDATION_ERROR, "数量信息不正确");
-        }
-        // 校验活动信息
-        if (promoId != null) {
-            if (!promoId.equals(itemDTO.getPromoDTO().getId())) {
-                throw new BusinessException(EmBusinessErrorEnum.PARAMETER_VALIDATION_ERROR, "活动信息不正确");
-            } else if (itemDTO.getPromoDTO().getStatus() != 2) {
-                throw new BusinessException(EmBusinessErrorEnum.PARAMETER_VALIDATION_ERROR, "活动还未开始");
-            }
+            throw new BusinessException(BusinessErrorEnum.PARAMETER_VALIDATION_ERROR, "数量信息不正确");
         }
         // 2、落单减库存（落单时，直接锁住库存）   支付减库存（支付成功后再减库存）
         boolean result = itemService.decreaseStock(itemId, amount);
         if (!result) {
-            throw new BusinessException(EmBusinessErrorEnum.STOCK_NOT_ENOUGH);
+            throw new BusinessException(BusinessErrorEnum.STOCK_NOT_ENOUGH);
         }
         // 3、订单入库
         OrderDTO orderDTO = new OrderDTO(userId, itemId, itemDTO.getPrice(), amount, itemDTO.getPrice().multiply(new BigDecimal(amount)));
@@ -91,7 +76,7 @@ public class OrderServiceImpl implements OrderService {
         // 设置库存流水状态为成功
         StockLogDO stockLogDO = stockLogDAO.selectByPrimaryKey(stockLogId);
         if (stockLogDO == null) {
-            throw new BusinessException(EmBusinessErrorEnum.UNKNOWN_ERROR);
+            throw new BusinessException(BusinessErrorEnum.UNKNOWN_ERROR);
         }
         stockLogDO.setStatus(StockLogStatusEnum.SUCCESS_STATUS.getStatusCode());
         stockLogDAO.updateByPrimaryKeySelective(stockLogDO);

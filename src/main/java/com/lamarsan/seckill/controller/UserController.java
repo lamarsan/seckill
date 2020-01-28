@@ -3,10 +3,10 @@ package com.lamarsan.seckill.controller;
 import com.alibaba.druid.util.StringUtils;
 import com.lamarsan.seckill.common.RestResponseModel;
 import com.lamarsan.seckill.dto.UserDTO;
+import com.lamarsan.seckill.em.BusinessErrorEnum;
 import com.lamarsan.seckill.form.UserLoginForm;
 import com.lamarsan.seckill.form.UserRigisterForm;
 import com.lamarsan.seckill.error.BusinessException;
-import com.lamarsan.seckill.em.EmBusinessErrorEnum;
 import com.lamarsan.seckill.service.UserService;
 import com.lamarsan.seckill.utils.MD5Util;
 import com.lamarsan.seckill.utils.RedisUtil;
@@ -63,7 +63,7 @@ public class UserController {
         // 验证手机号和对应的otpcode相符合
         String inSessionOtpCode = (String) redisUtil.get(userRigisterForm.getTelphone());
         if (!StringUtils.equals(userRigisterForm.getOtpCode(), inSessionOtpCode)) {
-            throw new BusinessException(EmBusinessErrorEnum.PARAMETER_VALIDATION_ERROR, "短信验证码不符合");
+            throw new BusinessException(BusinessErrorEnum.PARAMETER_VALIDATION_ERROR, "短信验证码不符合");
         }
         // 用户注册流程
         userRigisterForm.setRegisterMode("byphone");
@@ -96,7 +96,7 @@ public class UserController {
     public RestResponseModel getUser(@RequestParam(name = "id") Long id) {
         UserDTO userDTO = userService.getUserById(id);
         if (userDTO == null) {
-            throw new BusinessException(EmBusinessErrorEnum.USER_NOT_EXIST);
+            throw new BusinessException(BusinessErrorEnum.USER_NOT_EXIST);
         }
         return RestResponseModel.create(transferToUserVO(userDTO));
     }

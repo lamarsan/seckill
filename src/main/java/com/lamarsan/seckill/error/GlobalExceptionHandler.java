@@ -1,7 +1,7 @@
 package com.lamarsan.seckill.error;
 
 import com.lamarsan.seckill.common.RestResponseModel;
-import com.lamarsan.seckill.em.EmBusinessErrorEnum;
+import com.lamarsan.seckill.em.BusinessErrorEnum;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
@@ -41,8 +41,8 @@ public class GlobalExceptionHandler {
             responseData.put("errCode", businessException.getErrCode());
             responseData.put("errMsg", businessException.getErrMsg());
         } else {
-            responseData.put("errCode", EmBusinessErrorEnum.UNKNOWN_ERROR.getErrCode());
-            responseData.put("errMsg", EmBusinessErrorEnum.UNKNOWN_ERROR.getErrMsg());
+            responseData.put("errCode", BusinessErrorEnum.UNKNOWN_ERROR.getErrCode());
+            responseData.put("errMsg", BusinessErrorEnum.UNKNOWN_ERROR.getErrMsg());
         }
         return RestResponseModel.create(responseData, "fail");
     }
@@ -82,6 +82,6 @@ public class GlobalExceptionHandler {
         } else {
             msg = "必填参数缺失";
         }
-        return RestResponseModel.create(EmBusinessErrorEnum.PARAMETER_VALIDATION_ERROR, msg);
+        return RestResponseModel.create(BusinessErrorEnum.PARAMETER_VALIDATION_ERROR, msg);
     }
 }
