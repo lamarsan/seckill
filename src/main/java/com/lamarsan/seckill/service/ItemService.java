@@ -53,4 +53,9 @@ public interface ItemService {
      * 初始化库存流水
      */
     String initStockLog(Long itemId, Integer amount);
+
+    /**
+     * 发布商品
+     */
+    void publishItem(Long itemId);
 }

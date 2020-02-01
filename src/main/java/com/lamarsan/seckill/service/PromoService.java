@@ -17,11 +17,6 @@ public interface PromoService {
     PromoDTO getPromoByItemId(Long itemId);
 
     /**
-     * 发布活动
-     */
-    void publishPromo(Long promoId);
-
-    /**
      * 生成秒杀用的令牌
      */
     String generateSecondKillToken(Long promoId, Long itemId, Long userId);

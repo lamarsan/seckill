@@ -38,8 +38,6 @@ public class ItemController {
     private ItemService itemService;
     @Autowired
     private RedisUtil redisUtil;
-    @Autowired
-    private PromoService promoService;
 
     @ApiOperation(value = "新增商品")
     @PostMapping(value = "/insert")
@@ -74,11 +72,11 @@ public class ItemController {
         return RestResponseModel.create(itemVOList);
     }
 
-    @ApiOperation(value = "发布活动")
-    @GetMapping(value = "/publishPromo")
+    @ApiOperation(value = "发布商品")
+    @GetMapping(value = "/publishItem")
     @ResponseBody
-    public RestResponseModel publishPromo(@RequestParam(name = "id") Long id) {
-        promoService.publishPromo(id);
+    public RestResponseModel publishItem(@RequestParam(name = "id") Long id) {
+        itemService.publishItem(id);
         return RestResponseModel.create(null);
     }
 

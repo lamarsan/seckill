@@ -7,10 +7,12 @@ import com.lamarsan.seckill.dao.PromoDAO;
 import com.lamarsan.seckill.dao.StockLogDAO;
 import com.lamarsan.seckill.dto.ItemDTO;
 import com.lamarsan.seckill.dto.PromoDTO;
+import com.lamarsan.seckill.em.BusinessErrorEnum;
 import com.lamarsan.seckill.em.PromoStatusEnum;
 import com.lamarsan.seckill.em.StockLogStatusEnum;
 import com.lamarsan.seckill.entities.ItemDO;
 import com.lamarsan.seckill.entities.ItemStockDO;
+import com.lamarsan.seckill.entities.PromoDO;
 import com.lamarsan.seckill.entities.StockLogDO;
 import com.lamarsan.seckill.error.BusinessException;
 import com.lamarsan.seckill.mq.ProducerMQ;
@@ -26,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.lamarsan.seckill.common.CommonConstants.ITEM_DOOR_PROPORTION;
 
 /**
  * className: ItemServiceImpl
@@ -134,6 +138,15 @@ public class ItemServiceImpl implements ItemService {
         stockLogDO.setStatus(StockLogStatusEnum.INIT_STATUS.getStatusCode());
         stockLogDAO.insertSelective(stockLogDO);
         return stockLogDO.getStockLogId();
+    }
+
+    @Override
+    public void publishItem(Long itemId) {
+        ItemDTO itemDTO = this.getItemById(itemId);
+        // 将库存同步到redis
+        redisUtil.set(RedisConstants.STOCK_NUM + itemDTO.getId(), itemDTO.getStock());
+        // 将大闸的限制数字设到redis内
+        redisUtil.set(RedisConstants.ITEM_DOOR_COUNT + itemId, itemDTO.getStock() * ITEM_DOOR_PROPORTION);
     }
 
     private ItemDTO transferToItemDTO(ItemDO itemDO, ItemStockDO itemStockDO) {

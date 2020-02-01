@@ -22,7 +22,7 @@ public class RedisConstants {
     /**
      * 库存详情
      */
-    public static final String STOCK_NUM = "promo_item_stock_";
+    public static final String STOCK_NUM = "item_stock_";
 
     /**
      * 对应商品库存是否售罄
@@ -33,4 +33,9 @@ public class RedisConstants {
      * 秒杀令牌
      */
     public static final String PROMO_TOKEN = "promo_item_user_token_";
+
+    /**
+     * 将大闸的限制数字设到redis内
+     */
+    public static final String ITEM_DOOR_COUNT = "item_door_count_";
 }

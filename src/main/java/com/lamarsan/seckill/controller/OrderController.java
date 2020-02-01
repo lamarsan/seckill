@@ -94,10 +94,6 @@ public class OrderController {
                 throw new BusinessException(BusinessErrorEnum.PARAMETER_VALIDATION_ERROR, "秒杀令牌校验失败");
             }
         }
-        // 判断库存是否已售罄，若存在直接失败
-        if (redisUtil.hasKey(RedisConstants.STOCK_ZERO + orderInsertForm.getItemId())) {
-            throw new BusinessException(BusinessErrorEnum.STOCK_NOT_ENOUGH);
-        }
         // 加入库存流水init状态
         String stockLogId = itemService.initStockLog(orderInsertForm.getItemId(), orderInsertForm.getAmount());
         // 创建订单

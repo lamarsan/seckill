@@ -5,8 +5,10 @@ import com.lamarsan.seckill.dao.PromoDAO;
 import com.lamarsan.seckill.dto.ItemDTO;
 import com.lamarsan.seckill.dto.PromoDTO;
 import com.lamarsan.seckill.dto.UserDTO;
+import com.lamarsan.seckill.em.BusinessErrorEnum;
 import com.lamarsan.seckill.em.PromoStatusEnum;
 import com.lamarsan.seckill.entities.PromoDO;
+import com.lamarsan.seckill.error.BusinessException;
 import com.lamarsan.seckill.service.ItemService;
 import com.lamarsan.seckill.service.PromoService;
 import com.lamarsan.seckill.service.UserService;
@@ -44,18 +46,11 @@ public class PromoServiceImpl implements PromoService {
     }
 
     @Override
-    public void publishPromo(Long promoId) {
-        PromoDO promoDO = promoDAO.selectByPrimaryKey(promoId);
-        if (promoDO.getItemId() == null || promoDO.getItemId() == 0) {
-            return;
-        }
-        ItemDTO itemDTO = itemService.getItemById(promoDO.getItemId());
-        // 将库存同步到redis
-        redisUtil.set(RedisConstants.STOCK_NUM + itemDTO.getId(), itemDTO.getStock());
-    }
-
-    @Override
     public String generateSecondKillToken(Long promoId, Long itemId, Long userId) {
+        // 判断库存是否已售罄，若key存在直接失败
+        if (redisUtil.hasKey(RedisConstants.STOCK_ZERO + itemId)) {
+            return null;
+        }
         PromoDO promoDO = promoDAO.selectByPrimaryKey(promoId);
         PromoDTO promoDTO = transferToPromoDTO(promoDO);
         if (promoDTO == null) {
@@ -72,6 +67,11 @@ public class PromoServiceImpl implements PromoService {
         }
         UserDTO userDTO = userService.getUserByIdInCache(userId);
         if (userDTO == null) {
+            return null;
+        }
+        // 获取秒杀大闸的count数量
+        long result = redisUtil.decr(RedisConstants.ITEM_DOOR_COUNT + itemId, 1);
+        if (result < 0) {
             return null;
         }
         // 生成token，并在redis存入5分钟
