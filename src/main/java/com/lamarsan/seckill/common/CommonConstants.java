@@ -18,4 +18,9 @@ public class CommonConstants {
      * 秒杀大闸比例
      */
     public static final Integer ITEM_DOOR_PROPORTION = 5;
+
+    /**
+     * 拥塞窗口
+     */
+    public static final Integer THREAD_NUM = 20;
 }

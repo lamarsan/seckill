@@ -1,6 +1,8 @@
 package com.lamarsan.seckill.controller;
 
 import com.alibaba.druid.util.StringUtils;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.lamarsan.seckill.common.CommonConstants;
 import com.lamarsan.seckill.common.RedisConstants;
 import com.lamarsan.seckill.common.RestResponseModel;
 import com.lamarsan.seckill.dto.UserDTO;
@@ -20,7 +22,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.util.concurrent.*;
 
 /**
  * className: OrderController
@@ -36,8 +40,6 @@ import javax.servlet.http.HttpServletRequest;
 @Api(tags = "订单")
 public class OrderController {
     @Autowired
-    private OrderService orderService;
-    @Autowired
     private RedisUtil redisUtil;
     @Autowired
     private ProducerMQ producerMQ;
@@ -47,6 +49,14 @@ public class OrderController {
     private ItemService itemService;
     @Autowired
     private PromoService promoService;
+
+    private ExecutorService executorService;
+
+    @PostConstruct
+    public void init() {
+        ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat("thread-call-runner-%d").build();
+        executorService = new ThreadPoolExecutor(CommonConstants.THREAD_NUM, CommonConstants.THREAD_NUM, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), namedThreadFactory);
+    }
 
     @ApiOperation(value = "生成秒杀令牌")
     @PostMapping(value = "/generateToken")
@@ -94,11 +104,19 @@ public class OrderController {
                 throw new BusinessException(BusinessErrorEnum.PARAMETER_VALIDATION_ERROR, "秒杀令牌校验失败");
             }
         }
-        // 加入库存流水init状态
-        String stockLogId = itemService.initStockLog(orderInsertForm.getItemId(), orderInsertForm.getAmount());
-        // 创建订单
-        if (!producerMQ.transactionAsyncReduceStock(userDTO.getId(), orderInsertForm.getItemId(), orderInsertForm.getPromoId(), orderInsertForm.getAmount(), stockLogId)) {
-            throw new BusinessException(BusinessErrorEnum.UNKNOWN_ERROR, "下单失败");
+        Future<Object> future = executorService.submit(() -> {
+            // 加入库存流水init状态
+            String stockLogId = itemService.initStockLog(orderInsertForm.getItemId(), orderInsertForm.getAmount());
+            // 创建订单
+            if (!producerMQ.transactionAsyncReduceStock(userDTO.getId(), orderInsertForm.getItemId(), orderInsertForm.getPromoId(), orderInsertForm.getAmount(), stockLogId)) {
+                throw new BusinessException(BusinessErrorEnum.UNKNOWN_ERROR, "下单失败");
+            }
+            return null;
+        });
+        try {
+            future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new BusinessException(BusinessErrorEnum.UNKNOWN_ERROR);
         }
         return RestResponseModel.create(null);
     }
