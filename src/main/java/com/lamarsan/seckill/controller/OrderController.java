@@ -14,6 +14,7 @@ import com.lamarsan.seckill.mq.ProducerMQ;
 import com.lamarsan.seckill.service.ItemService;
 import com.lamarsan.seckill.service.OrderService;
 import com.lamarsan.seckill.service.PromoService;
+import com.lamarsan.seckill.utils.CodeUtil;
 import com.lamarsan.seckill.utils.RedisUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -23,7 +24,12 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.awt.image.RenderedImage;
+import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.*;
 
 /**
@@ -58,6 +64,23 @@ public class OrderController {
         executorService = new ThreadPoolExecutor(CommonConstants.THREAD_NUM, CommonConstants.THREAD_NUM, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), namedThreadFactory);
     }
 
+    @ApiOperation(value = "生成验证码")
+    @GetMapping(value = "/generateVerifyCode")
+    public void generateVerifyCode(HttpServletResponse httpServletResponse) throws IOException {
+        // 根据token获取用户信息
+        String token = httpServletRequest.getParameterMap().get("token")[0];
+        if (StringUtils.isEmpty(token)) {
+            throw new BusinessException(BusinessErrorEnum.USER_NOT_LOGIN, "用户还未登录，不能生成验证码");
+        }
+        UserDTO userDTO = (UserDTO) redisUtil.get(token);
+        if (userDTO == null) {
+            throw new BusinessException(BusinessErrorEnum.USER_NOT_LOGIN);
+        }
+        Map<String, Object> map = CodeUtil.generateCodeAndPic();
+        redisUtil.set(RedisConstants.VERIFY_CODE + userDTO.getId(), map.get("code"));
+        ImageIO.write((RenderedImage) map.get("codePic"), "jpeg", httpServletResponse.getOutputStream());
+    }
+
     @ApiOperation(value = "生成秒杀令牌")
     @PostMapping(value = "/generateToken")
     @ResponseBody
@@ -74,6 +97,14 @@ public class OrderController {
         // 如果promoId为null，说明不是活动商品，不产生令牌
         if (orderTokenForm.getPromoId() == null) {
             return RestResponseModel.create(null);
+        }
+        // 验证码验证
+        String redisVerifyCode = (String) redisUtil.get(RedisConstants.VERIFY_CODE + userDTO.getId());
+        if (StringUtils.isEmpty(redisVerifyCode)) {
+            throw new BusinessException(BusinessErrorEnum.PARAMETER_VALIDATION_ERROR, "请求非法");
+        }
+        if (!redisVerifyCode.equalsIgnoreCase(orderTokenForm.getVerifyCode())) {
+            throw new BusinessException(BusinessErrorEnum.PARAMETER_VALIDATION_ERROR, "请求非法，验证码错误");
         }
         // 获取秒杀访问令牌
         String promoToken = promoService.generateSecondKillToken(orderTokenForm.getPromoId(), orderTokenForm.getItemId(), userDTO.getId());

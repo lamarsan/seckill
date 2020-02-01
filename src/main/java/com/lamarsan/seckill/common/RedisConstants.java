@@ -38,4 +38,9 @@ public class RedisConstants {
      * 将大闸的限制数字设到redis内
      */
     public static final String ITEM_DOOR_COUNT = "item_door_count_";
+
+    /**
+     * 验证码
+     */
+    public static final String VERIFY_CODE = "verify_code_";
 }

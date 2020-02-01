@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -23,4 +24,6 @@ public class OrderTokenForm {
     @NotNull(message = "商品id不能为空")
     Long itemId;
     Long promoId;
+    @NotBlank(message = "验证码不为空")
+    String verifyCode;
 }

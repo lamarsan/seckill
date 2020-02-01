@@ -63,32 +63,37 @@
             下单
         </button>
     </div>
+    <div id="verifyDiv" style="display: none;" class="form-actions">
+        <img src=""/>
+        <input type="text" id="verifyContent" value=""/>
+        <button class="btn blue" id="verifyButton" type="submit">
+            验证
+        </button>
+    </div>
 </div>
 </body>
 <script>
     var g_itemVO = {};
     var orderTokenForm = {
         itemId: 0,
-        promoId: 0
+        promoId: 0,
+        verifyCode: ''
     };
     var orderInsertForm = {
         itemId: 0,
         amount: 0,
         promoId: 0,
-        promoToken:''
+        promoToken: ''
     };
     jQuery(document).ready(function () {
-        $("#createorder").on("click", function () {
+        $("#verifyButton").on("click", function () {
             var token = window.localStorage["token"];
-            if (token == null) {
-                alert("没有登录，不能下单");
-                window.location.href = "login.html";
-            }
             orderInsertForm.itemId = g_itemVO.id;
             orderInsertForm.amount = 1;
             orderInsertForm.promoId = g_itemVO.promoId;
             orderTokenForm.itemId = g_itemVO.id;
             orderTokenForm.promoId = g_itemVO.promoId;
+            orderTokenForm.verifyCode = $("#verifyContent").val();
             $.ajax({
                 type: "POST",
                 dataType: 'json',
@@ -132,6 +137,17 @@
                     alert("获取令牌失败，原因为" + data.responseText);
                 }
             });
+        });
+        $("#createorder").on("click", function () {
+            var token = window.localStorage["token"];
+            if (token == null) {
+                alert("没有登录，不能下单");
+                window.location.href = "login.html";
+                return false;
+            }
+            $("#verifyDiv img").attr("src", "http://" + g_host
+                + "/order/generateVerifyCode?token=" + token);
+            $("#verifyDiv").show();
         });
 
         $.ajax({
