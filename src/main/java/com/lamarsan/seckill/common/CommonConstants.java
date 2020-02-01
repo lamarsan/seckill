@@ -23,4 +23,9 @@ public class CommonConstants {
      * 拥塞窗口
      */
     public static final Integer THREAD_NUM = 20;
+
+    /**
+     * 限流速率（需要压测此值为压测的一半）
+     */
+    public static final Integer RATE_LIMITER = 50;
 }

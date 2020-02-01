@@ -1,6 +1,7 @@
 package com.lamarsan.seckill.controller;
 
 import com.alibaba.druid.util.StringUtils;
+import com.google.common.util.concurrent.RateLimiter;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.lamarsan.seckill.common.CommonConstants;
 import com.lamarsan.seckill.common.RedisConstants;
@@ -58,10 +59,13 @@ public class OrderController {
 
     private ExecutorService executorService;
 
+    private RateLimiter orderCreateRateLimiter;
+
     @PostConstruct
     public void init() {
         ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat("thread-call-runner-%d").build();
         executorService = new ThreadPoolExecutor(CommonConstants.THREAD_NUM, CommonConstants.THREAD_NUM, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), namedThreadFactory);
+        orderCreateRateLimiter = RateLimiter.create(CommonConstants.RATE_LIMITER);
     }
 
     @ApiOperation(value = "生成验证码")
@@ -119,6 +123,9 @@ public class OrderController {
     @PostMapping(value = "/insert")
     @ResponseBody
     public RestResponseModel orderInsert(@RequestBody @Validated OrderInsertForm orderInsertForm) {
+        if (!orderCreateRateLimiter.tryAcquire()) {
+            throw new BusinessException(BusinessErrorEnum.RATE_LIMIT);
+        }
         // 校验用户状态
         String token = httpServletRequest.getParameterMap().get("token")[0];
         if (StringUtils.isEmpty(token)) {
